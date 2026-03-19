@@ -446,6 +446,7 @@ let state = {
     weekPlan: [],
     currentDay: 0,
     trackerItems: [],
+    waterGlasses: 0,
 };
 
 // ==========================================
@@ -460,8 +461,11 @@ document.addEventListener('DOMContentLoaded', () => {
     initDayTabs();
     initTracker();
     loadFromStorage();
+    loadWaterTracker();
+    renderWaterTracker();
     initAutoSave();
     renderHistory();
+    renderCharts();
 });
 
 function initNavigation() {
@@ -1276,7 +1280,14 @@ function renderDayPlan(dayIndex) {
             <div class="meal-card">
                 <div class="meal-card-header">
                     <span>${mealIcons[mi]} ${meal.name}</span>
-                    <span class="meal-kcal">${Math.round(totals.kcal)} kcal</span>
+                    <span style="display:flex;align-items:center;gap:0.5rem;">
+                        <span class="meal-kcal">${Math.round(totals.kcal)} kcal</span>
+                        <button onclick="swapMeal(${dayIndex}, ${mi})" title="Swap this meal"
+                            style="width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:opacity 0.2s,background 0.2s;opacity:0.5;padding:0;line-height:1;"
+                            onmouseover="this.style.opacity='1';this.style.background='rgba(255,255,255,0.12)'"
+                            onmouseout="this.style.opacity='0.5';this.style.background='rgba(255,255,255,0.05)'"
+                        >&#8635;</button>
+                    </span>
                 </div>
                 <div class="meal-recipe-name">${recipe.name}</div>
                 <div class="meal-card-body">
@@ -1310,6 +1321,46 @@ function renderDayPlan(dayIndex) {
         <div class="summary-item fat"><div class="summary-value">${dayTotals.fat.toFixed(1)}g</div><div class="summary-label">Fat</div></div>
         <div class="summary-item fib"><div class="summary-value">${dayTotals.fiber.toFixed(1)}g</div><div class="summary-label">Fiber</div></div>
     `;
+}
+
+function swapMeal(dayIndex, mealIndex) {
+    const day = state.weekPlan[dayIndex];
+    if (!day) return;
+
+    const { mealSplit, selectedFoods } = state.preferences;
+    const targetKcal = state.results.targetKcal;
+    const targetProtein = state.macros.protein.grams;
+    const targetCarbs = state.macros.carbs.grams;
+    const targetFat = state.macros.fats.grams;
+
+    const fraction = mealSplit[mealIndex] / 100;
+    const mealTargets = {
+        kcal: Math.round(targetKcal * fraction),
+        protein: Math.round(targetProtein * fraction),
+        carbs: Math.round(targetCarbs * fraction),
+        fat: Math.round(targetFat * fraction),
+    };
+
+    // Collect used proteins from the OTHER meals of this day
+    const usedProteins = new Set();
+    day.meals.forEach((meal, mi) => {
+        if (mi === mealIndex) return;
+        meal.items.forEach(item => {
+            const protSources = selectedFoods.proteinquellen || [];
+            if (protSources.includes(item.name)) {
+                usedProteins.add(item.name);
+            }
+        });
+    });
+
+    const isBreakfast = (mealIndex === 0);
+    const newSeed = Date.now(); // random seed different from original
+
+    const newItems = buildMeal(mealIndex, mealTargets, selectedFoods, newSeed, isBreakfast, usedProteins);
+
+    day.meals[mealIndex].items = newItems;
+
+    renderDayPlan(dayIndex);
 }
 
 function sumItems(items) {
@@ -1559,6 +1610,90 @@ function saveTrackingHistory(history) {
     localStorage.setItem('nourishlab_history', JSON.stringify(history));
 }
 
+// ==========================================
+// WATER TRACKER
+// ==========================================
+
+function getWaterTarget() {
+    if (state.profile && state.profile.gewicht) {
+        return parseFloat((state.profile.gewicht * 35 / 1000).toFixed(1));
+    }
+    return 2.5;
+}
+
+function loadWaterTracker() {
+    try {
+        const saved = JSON.parse(localStorage.getItem('nourishlab_water_today'));
+        if (saved && saved.date === new Date().toISOString().split('T')[0]) {
+            state.waterGlasses = saved.glasses || 0;
+        } else {
+            state.waterGlasses = 0;
+        }
+    } catch {
+        state.waterGlasses = 0;
+    }
+}
+
+function saveWaterTracker() {
+    const today = new Date().toISOString().split('T')[0];
+    localStorage.setItem('nourishlab_water_today', JSON.stringify({
+        date: today,
+        glasses: state.waterGlasses,
+    }));
+}
+
+function toggleWaterGlass(idx) {
+    // If clicking a filled glass, unfill from that point; if clicking empty, fill up to it
+    if (idx < state.waterGlasses) {
+        state.waterGlasses = idx;
+    } else {
+        state.waterGlasses = idx + 1;
+    }
+    saveWaterTracker();
+    renderWaterTracker();
+}
+
+function renderWaterTracker() {
+    const grid = document.getElementById('waterGlassGrid');
+    if (!grid) return;
+
+    const target = getWaterTarget();
+    const glassSize = 0.25; // each glass = 250ml
+    const totalLiters = state.waterGlasses * glassSize;
+    const percent = Math.min(Math.round((totalLiters / target) * 100), 100);
+
+    // Update target label
+    const targetLabel = document.getElementById('waterTargetLabel');
+    if (targetLabel) targetLabel.textContent = 'Target: ' + target + 'L';
+
+    // Render 8 glass buttons
+    let html = '';
+    for (let i = 0; i < 8; i++) {
+        const filled = i < state.waterGlasses;
+        html += `<button onclick="toggleWaterGlass(${i})" class="flex flex-col items-center justify-center p-3 rounded-xl border-2 transition-all duration-300 cursor-pointer ${
+            filled
+                ? 'bg-blue-500/20 border-blue-400/50 text-blue-400 shadow-lg shadow-blue-500/10'
+                : 'bg-white/5 border-white/10 text-slate-500 hover:border-blue-400/30 hover:text-blue-400/60'
+        }">
+            <span class="text-2xl">${filled ? '&#128167;' : '&#129699;'}</span>
+            <span class="text-xs mt-1 font-medium">${((i + 1) * 250)}ml</span>
+        </button>`;
+    }
+    grid.innerHTML = html;
+
+    // Update progress bar
+    const bar = document.getElementById('waterProgressBar');
+    if (bar) bar.style.width = percent + '%';
+
+    // Update total display
+    const totalDisplay = document.getElementById('waterTotalDisplay');
+    if (totalDisplay) totalDisplay.textContent = totalLiters.toFixed(1) + 'L / ' + target + 'L';
+
+    // Update percent display
+    const percentDisplay = document.getElementById('waterPercentDisplay');
+    if (percentDisplay) percentDisplay.textContent = percent + '%';
+}
+
 function finishDay() {
     if (state.trackerItems.length === 0) {
         alert('No foods tracked today. Add some items first.');
@@ -1601,6 +1736,11 @@ function finishDay() {
             fiber: state.macros.fiber.grams,
         } : null,
         mealCount: countMeals(),
+        water: {
+            glasses: state.waterGlasses,
+            liters: parseFloat((state.waterGlasses * 0.25).toFixed(2)),
+            target: getWaterTarget(),
+        },
     };
 
     history.unshift(entry);
@@ -1721,6 +1861,7 @@ function renderHistory() {
 
     if (history.length === 0) {
         container.innerHTML = '<p class="text-center text-slate-500 text-sm">No days tracked yet. Finish a day to build your history.</p>';
+        renderCharts();
         return;
     }
 
@@ -1756,6 +1897,8 @@ function renderHistory() {
             </div>
         </div>`;
     }).join('');
+
+    renderCharts();
 }
 
 function toggleHistoryDetail(idx) {
@@ -1769,6 +1912,183 @@ function deleteHistoryEntry(idx) {
     history.splice(idx, 1);
     saveTrackingHistory(history);
     renderHistory();
+}
+
+// ==========================================
+// PROGRESS CHARTS (Chart.js)
+// ==========================================
+let calorieChartInstance = null;
+let macroChartInstance = null;
+
+function toggleProgressCharts() {
+    const container = document.getElementById('progressChartsContainer');
+    const label = document.getElementById('toggleChartsLabel');
+    const isHidden = container.classList.toggle('hidden');
+    label.textContent = isHidden ? 'Show Progress Charts' : 'Hide Progress Charts';
+    if (!isHidden) renderCharts();
+}
+
+function renderCharts() {
+    const history = getTrackingHistory();
+    const section = document.getElementById('progressChartsSection');
+    if (!section) return;
+
+    if (history.length < 2) {
+        section.classList.add('hidden');
+        return;
+    }
+    section.classList.remove('hidden');
+
+    // Destroy existing chart instances
+    if (calorieChartInstance) { calorieChartInstance.destroy(); calorieChartInstance = null; }
+    if (macroChartInstance) { macroChartInstance.destroy(); macroChartInstance = null; }
+
+    const sorted = [...history].sort((a, b) => new Date(a.date) - new Date(b.date));
+    const labels = sorted.map(e => {
+        const d = new Date(e.date);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
+
+    // --- Calorie Trend Line Chart ---
+    const calorieCtx = document.getElementById('calorieChart');
+    if (calorieCtx) {
+        const actualCalories = sorted.map(e => e.totals.kcal);
+        const targetCalories = sorted.map(e => e.targets ? e.targets.kcal : null);
+
+        calorieChartInstance = new Chart(calorieCtx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Actual Calories',
+                        data: actualCalories,
+                        borderColor: '#34d399',
+                        backgroundColor: 'rgba(52,211,153,0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#34d399',
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                    },
+                    {
+                        label: 'Target',
+                        data: targetCalories,
+                        borderColor: '#475569',
+                        borderWidth: 2,
+                        borderDash: [6, 4],
+                        fill: false,
+                        tension: 0.3,
+                        pointRadius: 0,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#94a3b8', font: { size: 11 } }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#94a3b8', font: { size: 10 } },
+                        grid: { color: 'rgba(255,255,255,0.06)' },
+                        border: { color: 'rgba(255,255,255,0.06)' }
+                    },
+                    y: {
+                        ticks: { color: '#94a3b8', font: { size: 10 } },
+                        grid: { color: 'rgba(255,255,255,0.06)' },
+                        border: { color: 'rgba(255,255,255,0.06)' },
+                        beginAtZero: false
+                    }
+                }
+            }
+        });
+    }
+
+    // --- Macro Breakdown Bar Chart ---
+    const macroCtx = document.getElementById('macroChart');
+    if (macroCtx) {
+        const avgProtein = Math.round(sorted.reduce((s, e) => s + e.totals.protein, 0) / sorted.length);
+        const avgCarbs = Math.round(sorted.reduce((s, e) => s + e.totals.carbs, 0) / sorted.length);
+        const avgFat = Math.round(sorted.reduce((s, e) => s + e.totals.fat, 0) / sorted.length);
+
+        const entriesWithTargets = sorted.filter(e => e.targets);
+        let avgTargetP = null, avgTargetC = null, avgTargetF = null;
+        if (entriesWithTargets.length > 0) {
+            avgTargetP = Math.round(entriesWithTargets.reduce((s, e) => s + e.targets.protein, 0) / entriesWithTargets.length);
+            avgTargetC = Math.round(entriesWithTargets.reduce((s, e) => s + e.targets.carbs, 0) / entriesWithTargets.length);
+            avgTargetF = Math.round(entriesWithTargets.reduce((s, e) => s + e.targets.fat, 0) / entriesWithTargets.length);
+        }
+
+        const datasets = [
+            {
+                label: 'Avg Protein (g)',
+                data: [avgProtein],
+                backgroundColor: '#f87171',
+                borderColor: '#f87171',
+                borderWidth: 1,
+                borderRadius: 6,
+            },
+            {
+                label: 'Avg Carbs (g)',
+                data: [avgCarbs],
+                backgroundColor: '#60a5fa',
+                borderColor: '#60a5fa',
+                borderWidth: 1,
+                borderRadius: 6,
+            },
+            {
+                label: 'Avg Fat (g)',
+                data: [avgFat],
+                backgroundColor: '#fbbf24',
+                borderColor: '#fbbf24',
+                borderWidth: 1,
+                borderRadius: 6,
+            }
+        ];
+
+        if (avgTargetP !== null) {
+            datasets.push(
+                { label: 'Target P', data: [avgTargetP], backgroundColor: 'rgba(248,113,113,0.25)', borderColor: '#f87171', borderWidth: 1, borderDash: [4, 3], borderRadius: 6 },
+                { label: 'Target C', data: [avgTargetC], backgroundColor: 'rgba(96,165,250,0.25)', borderColor: '#60a5fa', borderWidth: 1, borderDash: [4, 3], borderRadius: 6 },
+                { label: 'Target F', data: [avgTargetF], backgroundColor: 'rgba(251,191,36,0.25)', borderColor: '#fbbf24', borderWidth: 1, borderDash: [4, 3], borderRadius: 6 }
+            );
+        }
+
+        macroChartInstance = new Chart(macroCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Average Daily Macros'],
+                datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#94a3b8', font: { size: 11 } }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#94a3b8', font: { size: 10 } },
+                        grid: { color: 'rgba(255,255,255,0.06)' },
+                        border: { color: 'rgba(255,255,255,0.06)' }
+                    },
+                    y: {
+                        ticks: { color: '#94a3b8', font: { size: 10 } },
+                        grid: { color: 'rgba(255,255,255,0.06)' },
+                        border: { color: 'rgba(255,255,255,0.06)' },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
 }
 
 // ==========================================
@@ -1935,4 +2255,170 @@ function exportPDF() {
     });
 
     doc.save(`NourishLab_MealPlan_${p.name}_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+// ==========================================
+// SHOPPING LIST
+// ==========================================
+function findFoodCategory(foodName) {
+    for (const [catKey, cat] of Object.entries(FOODS)) {
+        if (cat.items[foodName]) return catKey;
+    }
+    return null;
+}
+
+function generateShoppingList() {
+    if (!state.weekPlan || state.weekPlan.length === 0) {
+        alert('Please generate a meal plan first.');
+        return;
+    }
+
+    // Aggregate all items: { foodName: { grams, category } }
+    const aggregated = {};
+
+    state.weekPlan.forEach(day => {
+        day.meals.forEach(meal => {
+            meal.items.forEach(item => {
+                if (aggregated[item.name]) {
+                    aggregated[item.name].grams += item.grams;
+                } else {
+                    aggregated[item.name] = {
+                        grams: item.grams,
+                        category: findFoodCategory(item.name) || 'other'
+                    };
+                }
+            });
+        });
+    });
+
+    // Group by category
+    const grouped = {};
+    for (const [name, data] of Object.entries(aggregated)) {
+        const cat = data.category;
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push({ name, grams: data.grams });
+    }
+
+    // Sort items within each group by grams descending
+    for (const cat of Object.keys(grouped)) {
+        grouped[cat].sort((a, b) => b.grams - a.grams);
+    }
+
+    // Category display order
+    const categoryOrder = ['proteinquellen', 'kohlenhydrate', 'gemuese', 'salate', 'obst', 'huelsenfruechte', 'oele'];
+
+    // Render
+    let html = '';
+    categoryOrder.forEach(catKey => {
+        if (!grouped[catKey]) return;
+        const label = FOODS[catKey]?.label || catKey;
+        html += `
+            <div class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-6 mb-4">
+                <h3 class="text-lg font-semibold text-slate-100 mb-3">${label}</h3>
+                <ul class="space-y-2">
+                    ${grouped[catKey].map(item => `
+                        <li class="flex justify-between items-center py-1.5 border-b border-white/5 last:border-0">
+                            <span class="text-slate-300">${item.name}</span>
+                            <span class="text-primary font-semibold">${item.grams}g</span>
+                        </li>
+                    `).join('')}
+                </ul>
+            </div>
+        `;
+    });
+
+    // Handle uncategorized items
+    if (grouped['other']) {
+        html += `
+            <div class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-6 mb-4">
+                <h3 class="text-lg font-semibold text-slate-100 mb-3">Other</h3>
+                <ul class="space-y-2">
+                    ${grouped['other'].map(item => `
+                        <li class="flex justify-between items-center py-1.5 border-b border-white/5 last:border-0">
+                            <span class="text-slate-300">${item.name}</span>
+                            <span class="text-primary font-semibold">${item.grams}g</span>
+                        </li>
+                    `).join('')}
+                </ul>
+            </div>
+        `;
+    }
+
+    document.getElementById('shoppingListContent').innerHTML = html;
+    const section = document.getElementById('shoppinglist');
+    section.classList.remove('hidden');
+    section.scrollIntoView({ behavior: 'smooth' });
+}
+
+function copyShoppingList() {
+    if (!state.weekPlan || state.weekPlan.length === 0) return;
+
+    // Build plain text version
+    const aggregated = {};
+    state.weekPlan.forEach(day => {
+        day.meals.forEach(meal => {
+            meal.items.forEach(item => {
+                if (aggregated[item.name]) {
+                    aggregated[item.name].grams += item.grams;
+                } else {
+                    aggregated[item.name] = {
+                        grams: item.grams,
+                        category: findFoodCategory(item.name) || 'other'
+                    };
+                }
+            });
+        });
+    });
+
+    const grouped = {};
+    for (const [name, data] of Object.entries(aggregated)) {
+        const cat = data.category;
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push({ name, grams: data.grams });
+    }
+    for (const cat of Object.keys(grouped)) {
+        grouped[cat].sort((a, b) => b.grams - a.grams);
+    }
+
+    const categoryOrder = ['proteinquellen', 'kohlenhydrate', 'gemuese', 'salate', 'obst', 'huelsenfruechte', 'oele'];
+    // Strip HTML entities from labels for plain text
+    const stripHtml = (str) => { const el = document.createElement('span'); el.innerHTML = str; return el.textContent; };
+
+    let text = `NourishLab Shopping List (${state.weekPlan.length} days)\n${'='.repeat(40)}\n\n`;
+
+    categoryOrder.forEach(catKey => {
+        if (!grouped[catKey]) return;
+        const label = stripHtml(FOODS[catKey]?.label || catKey);
+        text += `${label}\n${'-'.repeat(30)}\n`;
+        grouped[catKey].forEach(item => {
+            text += `  ${item.name} — ${item.grams}g\n`;
+        });
+        text += '\n';
+    });
+
+    if (grouped['other']) {
+        text += `Other\n${'-'.repeat(30)}\n`;
+        grouped['other'].forEach(item => {
+            text += `  ${item.name} — ${item.grams}g\n`;
+        });
+    }
+
+    navigator.clipboard.writeText(text.trim()).then(() => {
+        const btn = document.querySelector('#shoppinglist .btn-primary');
+        const original = btn.innerHTML;
+        btn.innerHTML = '&#10004; Copied!';
+        btn.classList.add('bg-emerald-600');
+        setTimeout(() => {
+            btn.innerHTML = original;
+            btn.classList.remove('bg-emerald-600');
+        }, 2000);
+    }).catch(() => {
+        // Fallback for older browsers
+        const ta = document.createElement('textarea');
+        ta.value = text.trim();
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+    });
 }
