@@ -52,14 +52,17 @@
         <div class="nav-brand">
             <span class="nav-logo">&#129514;</span> NourishLab
         </div>
-        <div class="nav-links">
-            <a href="#hero" class="nav-link active">Home</a>
-            <a href="#profil" class="nav-link">My Profile</a>
-            <a href="#ergebnis" class="nav-link">Analysis</a>
-            <a href="#nutrition-rules" class="nav-link">Nutrition Rules</a>
-            <a href="#praeferenzen" class="nav-link">Preferences</a>
-            <a href="#mealplan" class="nav-link">Meal Plan</a>
-            <a href="#tracker" class="nav-link">Food Tracker</a>
+        <button class="nav-toggle" id="navToggle" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
+        <div class="nav-links" id="navLinks">
+            <a href="#hero" class="nav-link active" onclick="closeNav()">Home</a>
+            <a href="#profil" class="nav-link" onclick="closeNav()">My Profile</a>
+            <a href="#ergebnis" class="nav-link" onclick="closeNav()">Analysis</a>
+            <a href="#nutrition-rules" class="nav-link" onclick="closeNav()">Rules</a>
+            <a href="#praeferenzen" class="nav-link" onclick="closeNav()">Preferences</a>
+            <a href="#mealplan" class="nav-link" onclick="closeNav()">Meal Plan</a>
+            <a href="#tracker" class="nav-link" onclick="closeNav()">Tracker</a>
         </div>
     </nav>
 

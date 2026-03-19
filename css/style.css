@@ -1421,25 +1421,101 @@ input[type="text"]:focus {
     }
 }
 
+/* --- Hamburger Button --- */
+.nav-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    z-index: 1001;
+}
+
+.nav-toggle span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: var(--transition);
+}
+
 @media (max-width: 768px) {
+    .nav-toggle { display: flex; }
+
+    .nav-links {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        z-index: 1000;
+    }
+
+    .nav-links.open {
+        display: flex;
+    }
+
+    .nav-link {
+        font-size: 1.1rem;
+        padding: 14px 28px;
+    }
+
     .hero-title { font-size: 2.4rem; }
     .form-grid { grid-template-columns: 1fr; }
     .results-grid { grid-template-columns: 1fr 1fr; }
     .macros-grid { grid-template-columns: 1fr 1fr; }
     .nutrition-rules-grid { grid-template-columns: 1fr; }
-    .nav-links { display: none; }
-    .day-tabs { flex-wrap: wrap; }
+    .hints-grid { grid-template-columns: 1fr; }
+    .day-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+        padding-bottom: 8px;
+        gap: 6px;
+    }
+    .day-tab {
+        flex-shrink: 0;
+        padding: 10px 16px;
+        font-size: 0.85rem;
+    }
     .day-summary { flex-wrap: wrap; gap: 16px; padding: 20px; }
     .meal-split-selector { grid-template-columns: 1fr; }
     .hero-visual { flex-direction: column; gap: 12px; }
     .tracker-item-macros { display: none; }
+    .container { padding: 0 16px; }
+    .navbar { padding: 12px 16px; }
+    .navbar.scrolled { padding: 8px 16px; }
+    .section { padding: 80px 0; }
+    .section-header h2 { font-size: 1.8rem; }
+    .water-calc { flex-direction: column; text-align: center; padding: 20px; }
 }
 
 @media (max-width: 480px) {
-    .hero-title { font-size: 2rem; }
+    .hero { padding: 100px 16px 60px; }
+    .hero-title { font-size: 1.8rem; }
+    .hero-subtitle { font-size: 1rem; }
+    .hero-desc { font-size: 0.9rem; }
     .results-grid { grid-template-columns: 1fr; }
     .macros-grid { grid-template-columns: 1fr 1fr; }
     .section { padding: 60px 0; }
+    .form-card { padding: 20px; }
+    .nutrition-rule-card { padding: 16px; gap: 12px; }
+    .nutrition-rule-number { width: 36px; height: 36px; min-width: 36px; font-size: 1rem; }
+    .btn-lg { padding: 14px 24px; font-size: 0.95rem; }
+    .day-summary { gap: 12px; padding: 16px; }
+    .summary-value { font-size: 1.2rem; }
 }
 
 /* ========== Animations ========== */

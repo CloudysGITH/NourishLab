@@ -178,6 +178,13 @@ const FOODS = {
 };
 
 // ==========================================
+// MOBILE NAV
+// ==========================================
+function closeNav() {
+    document.getElementById('navLinks').classList.remove('open');
+}
+
+// ==========================================
 // UNIT CONVERSION TABLE
 // Approximate conversions to grams
 // ==========================================
