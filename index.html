@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NourishLab - Your Personal Nutrition Coach</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { DEFAULT: '#34d399', light: '#6ee7b7', dark: '#059669', glow: 'rgba(52,211,153,0.12)' },
+                        secondary: { DEFAULT: '#f0a872', light: '#fbbf6e' },
+                        accent: '#a78bfa',
+                        protein: '#f87171',
+                        carbsc: '#60a5fa',
+                        fatsc: '#fbbf24',
+                        fiberc: '#34d399',
+                    },
+                    fontFamily: {
+                        display: ['Playfair Display', 'serif'],
+                        body: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-up': 'fadeUp 0.6s ease forwards',
+                        'fade-up-delay': 'fadeUp 0.6s ease 0.2s forwards',
+                        'pulse-slow': 'pulse 3s ease-in-out infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="font-body bg-[#0f172a] text-[#f1f5f9] antialiased">
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-brand">
+            <span class="nav-logo">&#129514;</span> NourishLab
+        </div>
+        <div class="nav-links">
+            <a href="#hero" class="nav-link active">Home</a>
+            <a href="#profil" class="nav-link">My Profile</a>
+            <a href="#ergebnis" class="nav-link">Analysis</a>
+            <a href="#nutrition-rules" class="nav-link">Nutrition Rules</a>
+            <a href="#praeferenzen" class="nav-link">Preferences</a>
+            <a href="#mealplan" class="nav-link">Meal Plan</a>
+            <a href="#tracker" class="nav-link">Food Tracker</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-emerald-950/40 via-slate-900/20 to-purple-950/30"></div>
+        <div class="absolute top-[-200px] right-[-200px] w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(52,211,153,0.15)_0%,transparent_70%)] rounded-full"></div>
+        <div class="absolute bottom-[-100px] left-[-100px] w-[400px] h-[400px] bg-[radial-gradient(circle,rgba(167,139,250,0.1)_0%,transparent_70%)] rounded-full"></div>
+        <div class="absolute top-1/4 right-1/4 w-72 h-72 bg-emerald-400/5 rounded-full blur-3xl animate-pulse-slow"></div>
+        <div class="hero-content relative z-10">
+            <h1 class="hero-title font-display">Your Personalized<br><span class="bg-gradient-to-r from-primary to-emerald-400 bg-clip-text text-transparent">Nutrition Plan</span></h1>
+            <p class="hero-subtitle">Science-based. Individually tailored. Calculated to the gram.</p>
+            <p class="hero-desc">Based on your body data, goals and preferences, we create your optimal meal plan - grounded in nutritional science.</p>
+            <a href="#profil" class="btn btn-primary btn-lg group">
+                Get Started <span class="inline-block transition-transform group-hover:translate-x-1">&#10132;</span>
+            </a>
+        </div>
+        <div class="hero-visual">
+            <div class="hero-card backdrop-blur-md bg-white/5 border border-white/10">
+                <div class="hero-card-icon">&#127822;</div>
+                <span>Personalized</span>
+            </div>
+            <div class="hero-card backdrop-blur-md bg-white/5 border border-white/10 animation-delay-200">
+                <div class="hero-card-icon">&#129514;</div>
+                <span>Science-based</span>
+            </div>
+            <div class="hero-card backdrop-blur-md bg-white/5 border border-white/10 animation-delay-400">
+                <div class="hero-card-icon">&#127860;</div>
+                <span>Gram-precise</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Profile Section -->
+    <section id="profil" class="section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Step 1</span>
+                <h2>Your Body Profile</h2>
+                <p>Enter your data so we can calculate your individual needs.</p>
+            </div>
+
+            <form id="profileForm" class="profile-form">
+                <div class="form-grid">
+                    <!-- Personal Data -->
+                    <div class="form-card group hover:shadow-xl hover:shadow-primary/5">
+                        <h3>&#128100; Personal Data</h3>
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" placeholder="Your name">
+                        </div>
+                        <div class="form-group">
+                            <label for="alter">Age</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="alter" min="14" max="100" placeholder="35" required>
+                                <span class="unit">years</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <div class="radio-group">
+                                <label class="radio-card">
+                                    <input type="radio" name="geschlecht" value="female" required>
+                                    <span class="radio-label">&#9792; Female</span>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="geschlecht" value="male">
+                                    <span class="radio-label">&#9794; Male</span>
+                                </label>
+                                <label class="radio-card">
+                                    <input type="radio" name="geschlecht" value="other">
+                                    <span class="radio-label">&#9954; Other</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Body Data -->
+                    <div class="form-card group hover:shadow-xl hover:shadow-primary/5">
+                        <h3>&#128207; Body Measurements</h3>
+                        <div class="form-group">
+                            <label for="groesse">Height</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="groesse" min="120" max="230" placeholder="170" required>
+                                <span class="unit">cm</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="gewicht">Current Weight</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="gewicht" min="30" max="300" step="0.1" placeholder="75.0" required>
+                                <span class="unit">kg</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="zielgewicht">Target Weight</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="zielgewicht" min="30" max="300" step="0.1" placeholder="68.0" required>
+                                <span class="unit">kg</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="koerperfett">Body Fat % (optional)</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="koerperfett" min="3" max="60" step="0.1" placeholder="25">
+                                <span class="unit">%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity -->
+                    <div class="form-card group hover:shadow-xl hover:shadow-primary/5">
+                        <h3>&#127939; Activity Level</h3>
+                        <div class="form-group">
+                            <label for="aktivitaet">Daily Activity</label>
+                            <div class="select-wrapper">
+                                <select id="aktivitaet" required>
+                                    <option value="">Please select...</option>
+                                    <option value="1.2">Sedentary (office work, little movement)</option>
+                                    <option value="1.375">Lightly active (1-2x exercise/week)</option>
+                                    <option value="1.55">Moderately active (3-5x exercise/week)</option>
+                                    <option value="1.725">Very active (6-7x exercise/week)</option>
+                                    <option value="1.9">Extremely active (2x daily / physical labor)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Sports / Training</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="sportart" value="strength">
+                                    <span>&#127947; Strength Training</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="sportart" value="cardio">
+                                    <span>&#127939; Cardio / Running</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="sportart" value="yoga">
+                                    <span>&#129496; Yoga / Pilates</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="sportart" value="swimming">
+                                    <span>&#127946; Swimming</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="sportart" value="cycling">
+                                    <span>&#128692; Cycling</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="sportart" value="hiking">
+                                    <span>&#9968; Hiking</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Goals & Health -->
+                    <div class="form-card group hover:shadow-xl hover:shadow-primary/5">
+                        <h3>&#127919; Goals & Health</h3>
+                        <div class="form-group">
+                            <label>Goals (select all that apply)</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="ziel" value="fatloss">
+                                    <span>&#128293; Fat Loss</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="ziel" value="muscle">
+                                    <span>&#128170; Muscle Building</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="ziel" value="maintain">
+                                    <span>&#9878; Maintain Weight</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="ziel" value="wellbeing">
+                                    <span>&#127804; General Wellbeing</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group" id="weightlossRateGroup" style="display:none;">
+                            <label for="weightlossRate">Target Weight Loss per Week</label>
+                            <div class="slider-container">
+                                <input type="range" id="weightlossRate" min="0.25" max="1.0" step="0.05" value="0.5" class="slider">
+                                <div class="slider-labels">
+                                    <span>0.25 kg</span>
+                                    <span class="slider-value" id="weightlossRateValue">0.50 kg/week</span>
+                                    <span>1.0 kg</span>
+                                </div>
+                            </div>
+                            <p class="form-hint">Recommended: 0.5 kg/week for sustainable fat loss while preserving muscle mass.</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Special Conditions</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="umstaende" value="menopause">
+                                    <span>&#127804; Menopause / Perimenopause</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="umstaende" value="thyroid">
+                                    <span>&#129516; Thyroid Issues</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="umstaende" value="diabetes">
+                                    <span>&#128137; Diabetes / Insulin Resistance</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="umstaende" value="digestion">
+                                    <span>&#129756; Digestive Issues / IBS</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="umstaende" value="stress">
+                                    <span>&#128164; High Stress Level</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Intolerances / Allergies</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="allergie" value="lactose">
+                                    <span>&#129371; Lactose Intolerance</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="allergie" value="gluten">
+                                    <span>&#127838; Gluten Intolerance</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="allergie" value="fructose">
+                                    <span>&#127815; Fructose Intolerance</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="allergie" value="histamine">
+                                    <span>&#129472; Histamine Intolerance</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="allergie" value="nuts">
+                                    <span>&#129372; Nut Allergy</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="allergie" value="soy">
+                                    <span>&#127813; Soy Allergy</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="allergie" value="egg">
+                                    <span>&#129370; Egg Allergy</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        Calculate Analysis &#10132;
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="clearSavedData()">
+                        &#128465; Clear Saved Data
+                    </button>
+                </div>
+                <p class="save-hint" id="saveHint">&#128190; Your entries are automatically saved in your browser.</p>
+            </form>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section id="ergebnis" class="section section-dark hidden">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Step 2</span>
+                <h2>Your Analysis</h2>
+                <p>Based on your data, we calculated the following values.</p>
+            </div>
+
+            <div class="results-grid">
+                <div class="result-card result-bmi">
+                    <div class="result-icon">&#9878;</div>
+                    <div class="result-label">BMI</div>
+                    <div class="result-value" id="resultBMI">-</div>
+                    <div class="result-detail" id="resultBMIDetail">-</div>
+                    <div class="bmi-bar">
+                        <div class="bmi-indicator" id="bmiIndicator"></div>
+                        <div class="bmi-labels">
+                            <span>16</span><span>18.5</span><span>25</span><span>30</span><span>40</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-card result-bmr">
+                    <div class="result-icon">&#128293;</div>
+                    <div class="result-label">Basal Metabolic Rate</div>
+                    <div class="result-value" id="resultBMR">-</div>
+                    <div class="result-detail">Calories at rest</div>
+                </div>
+
+                <div class="result-card result-tdee">
+                    <div class="result-icon">&#9889;</div>
+                    <div class="result-label">Total Daily Energy</div>
+                    <div class="result-value" id="resultTDEE">-</div>
+                    <div class="result-detail">Calories incl. activity</div>
+                </div>
+
+                <div class="result-card result-target highlight-card">
+                    <div class="result-icon">&#127919;</div>
+                    <div class="result-label">Your Calorie Target</div>
+                    <div class="result-value" id="resultTarget">-</div>
+                    <div class="result-detail" id="resultTargetDetail">-</div>
+                </div>
+            </div>
+
+            <!-- Goal Badge -->
+            <div class="goal-badge-container" id="goalBadgeContainer"></div>
+
+            <!-- Macro Distribution -->
+            <div class="macros-section">
+                <h3>Daily Macronutrient Distribution</h3>
+                <div class="macros-grid">
+                    <div class="macro-card protein">
+                        <div class="macro-ring">
+                            <svg viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" class="macro-ring-bg"/>
+                                <circle cx="50" cy="50" r="40" class="macro-ring-fill" id="proteinRing"/>
+                            </svg>
+                            <div class="macro-ring-value" id="proteinPercent">-</div>
+                        </div>
+                        <div class="macro-label">Protein</div>
+                        <div class="macro-grams" id="proteinGrams">- g</div>
+                        <div class="macro-kcal" id="proteinKcal">- kcal</div>
+                    </div>
+                    <div class="macro-card carbs">
+                        <div class="macro-ring">
+                            <svg viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" class="macro-ring-bg"/>
+                                <circle cx="50" cy="50" r="40" class="macro-ring-fill" id="carbsRing"/>
+                            </svg>
+                            <div class="macro-ring-value" id="carbsPercent">-</div>
+                        </div>
+                        <div class="macro-label">Carbohydrates</div>
+                        <div class="macro-grams" id="carbsGrams">- g</div>
+                        <div class="macro-kcal" id="carbsKcal">- kcal</div>
+                    </div>
+                    <div class="macro-card fats">
+                        <div class="macro-ring">
+                            <svg viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" class="macro-ring-bg"/>
+                                <circle cx="50" cy="50" r="40" class="macro-ring-fill" id="fatsRing"/>
+                            </svg>
+                            <div class="macro-ring-value" id="fatsPercent">-</div>
+                        </div>
+                        <div class="macro-label">Fats</div>
+                        <div class="macro-grams" id="fatsGrams">- g</div>
+                        <div class="macro-kcal" id="fatsKcal">- kcal</div>
+                    </div>
+                    <div class="macro-card fiber">
+                        <div class="macro-ring">
+                            <svg viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="40" class="macro-ring-bg"/>
+                                <circle cx="50" cy="50" r="40" class="macro-ring-fill" id="fiberRing"/>
+                            </svg>
+                            <div class="macro-ring-value" id="fiberPercent">-</div>
+                        </div>
+                        <div class="macro-label">Fiber</div>
+                        <div class="macro-grams" id="fiberGrams">- g</div>
+                        <div class="macro-kcal" id="fiberKcal">min. target</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hints -->
+            <div class="hints-section" id="hintsSection">
+                <h3>Individual Recommendations</h3>
+                <div class="hints-grid" id="hintsGrid"></div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-primary btn-lg" onclick="showSection('nutrition-rules')">
+                    View Nutrition Rules &#10132;
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Science-Based Nutrition Rules Section -->
+    <section id="nutrition-rules" class="section hidden">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Evidence-Based</span>
+                <h2>The 9 Golden Nutrition Rules</h2>
+                <p>These science-backed principles optimize your metabolism, digestion, and body composition.</p>
+            </div>
+
+            <div class="nutrition-rules-grid">
+                <div class="nutrition-rule-card">
+                    <div class="nutrition-rule-number">1</div>
+                    <div class="nutrition-rule-content">
+                        <h4>Only 3 Meals Per Day</h4>
+                        <p>Eat exactly three meals per day. No snacking between meals. Research shows this allows insulin levels to drop between meals, promoting fat oxidation and improving insulin sensitivity over time.</p>
+                    </div>
+                </div>
+                <div class="nutrition-rule-card">
+                    <div class="nutrition-rule-number">2</div>
+                    <div class="nutrition-rule-content">
+                        <h4>5-Hour Gap Between Meals</h4>
+                        <p>Leave at least 5 hours between each meal. This activates the migrating motor complex (MMC) - your gut's natural cleansing wave - and ensures full digestion before the next meal.</p>
+                    </div>
+                </div>
+                <div class="nutrition-rule-card">
+                    <div class="nutrition-rule-number">3</div>
+                    <div class="nutrition-rule-content">
+                        <h4>Start Each Meal with Protein</h4>
+                        <p>Always begin eating with your protein source first. Studies show this stimulates glucagon release, promotes satiety, and reduces the blood sugar spike from carbohydrates eaten afterwards.</p>
+                    </div>
+                </div>
+                <div class="nutrition-rule-card">
+                    <div class="nutrition-rule-number">4</div>
+                    <div class="nutrition-rule-content">
+                        <h4>Only One Type of Protein Per Meal</h4>
+                        <p>Each meal should contain only one protein source (e.g., either chicken OR fish OR eggs - never mixed). This simplifies digestion and supports optimal enzymatic breakdown and nutrient absorption.</p>
+                    </div>
+                </div>
+                <div class="nutrition-rule-card">
+                    <div class="nutrition-rule-number">5</div>
+                    <div class="nutrition-rule-content">
+                        <h4>No Eating After 9 PM</h4>
+                        <p>Finish your last meal by 9 PM. Chrononutrition research shows that late eating disrupts circadian rhythms, impairs glucose tolerance, and reduces sleep quality and overnight recovery.</p>
+                    </div>
+                </div>
+                <div class="nutrition-rule-card">
+                    <div class="nutrition-rule-number">6</div>
+                    <div class="nutrition-rule-content">
+                        <h4>Drink Plenty of Water</h4>
+                        <p>Drink at least 35 ml of water per kg of body weight daily. Hydration supports every metabolic process. Drink between meals rather than during to avoid diluting digestive enzymes.</p>
+                    </div>
+                </div>
+                <div class="nutrition-rule-card">
+                    <div class="nutrition-rule-number">7</div>
+                    <div class="nutrition-rule-content">
+                        <h4>One Apple a Day</h4>
+                        <p>Eat one apple daily - ideally in the evening. Apples are rich in pectin, a prebiotic fiber that feeds beneficial gut bacteria, supports detoxification, and helps regulate cholesterol levels.</p>
+                    </div>
+                </div>
+                <div class="nutrition-rule-card">
+                    <div class="nutrition-rule-number">8</div>
+                    <div class="nutrition-rule-content">
+                        <h4>Rotate Your Protein Sources</h4>
+                        <p>Don't eat the same protein source twice in one day. Rotating proteins ensures a broad amino acid spectrum and diverse micronutrient intake across the week.</p>
+                    </div>
+                </div>
+                <div class="nutrition-rule-card" style="grid-column: 1 / -1;">
+                    <div class="nutrition-rule-number">9</div>
+                    <div class="nutrition-rule-content">
+                        <h4>Prioritize Sufficient Sleep</h4>
+                        <p>Aim for 7-9 hours of quality sleep per night. Sleep deprivation increases ghrelin (hunger hormone) by up to 28% and decreases leptin (satiety hormone), leading to overeating. Poor sleep also raises cortisol, promoting visceral fat storage and impairing muscle recovery. Growth hormone - essential for repair and fat metabolism - is released primarily during deep sleep.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Water Calculator -->
+            <div class="water-calc" id="waterCalc">
+                <div class="water-icon">&#128167;</div>
+                <div class="water-info">
+                    <strong>Your Daily Water Target:</strong>
+                    <span id="waterTarget">-</span>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-primary btn-lg" onclick="showSection('praeferenzen')">
+                    Set Preferences &#10132;
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Preferences Section -->
+    <section id="praeferenzen" class="section section-dark hidden">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Step 3</span>
+                <h2>Your Food Preferences</h2>
+                <p>Select your preferred foods. The meal plan will be built around them.</p>
+            </div>
+
+            <div class="pref-container">
+                <!-- Diet Type -->
+                <div class="form-card">
+                    <h3>&#127793; Diet Type</h3>
+                    <div class="radio-group">
+                        <label class="radio-card">
+                            <input type="radio" name="ernaehrungsform" value="omnivore" checked>
+                            <span class="radio-label">Omnivore (everything)</span>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="ernaehrungsform" value="vegetarian">
+                            <span class="radio-label">Vegetarian</span>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="ernaehrungsform" value="vegan">
+                            <span class="radio-label">Vegan</span>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="ernaehrungsform" value="pescatarian">
+                            <span class="radio-label">Pescatarian</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Meal Split -->
+                <div class="form-card">
+                    <h3>&#128338; Meal Calorie Distribution</h3>
+                    <div class="meal-split-selector">
+                        <label class="radio-card">
+                            <input type="radio" name="mealsplit" value="30-40-30" checked>
+                            <span class="radio-label">30 / 40 / 30<br><small>Breakfast / Lunch / Dinner</small></span>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="mealsplit" value="25-45-30">
+                            <span class="radio-label">25 / 45 / 30<br><small>Light Breakfast</small></span>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="mealsplit" value="35-35-30">
+                            <span class="radio-label">35 / 35 / 30<br><small>Evenly Distributed</small></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Plan Duration -->
+                <div class="form-card">
+                    <h3>&#128197; Plan Duration</h3>
+                    <div class="form-group">
+                        <label for="planDays">How many days should your meal plan cover?</label>
+                        <div class="flex items-center gap-4 mt-2">
+                            <input type="range" id="planDays" min="1" max="14" value="7" class="slider flex-1" oninput="document.getElementById('planDaysValue').textContent = this.value + ' days'">
+                            <span id="planDaysValue" class="text-lg font-bold text-primary min-w-[80px] text-center">7 days</span>
+                        </div>
+                        <div class="flex justify-between text-xs text-slate-500 mt-1">
+                            <span>1 day</span>
+                            <span>14 days</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Food Selection -->
+                <div class="food-selection">
+                    <h3>&#127859; Preferred Foods</h3>
+                    <p class="food-hint">Select at least 3-4 items per category for a varied plan. If none selected, all compatible foods will be used.</p>
+
+                    <div class="food-categories" id="foodCategories">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Oils -->
+                <div class="form-card">
+                    <h3>&#129361; Preferred Oils & Fats</h3>
+                    <div class="checkbox-group" id="oilSelection">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-primary btn-lg" onclick="generateMealPlan()">
+                    Generate Meal Plan &#10132;
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mealplan Section -->
+    <section id="mealplan" class="section hidden">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Your Plan</span>
+                <h2>Your Personal Meal Plan</h2>
+                <p id="mealplanSubtitle">-</p>
+            </div>
+
+            <!-- Day Tabs -->
+            <div class="day-tabs flex-wrap" id="dayTabs">
+                <!-- Dynamically populated based on planDays -->
+            </div>
+
+            <!-- Day Plan -->
+            <div class="day-plan" id="dayPlan">
+                <!-- Dynamically populated -->
+            </div>
+
+            <!-- Day Summary -->
+            <div class="day-summary" id="daySummary">
+                <!-- Dynamically populated -->
+            </div>
+
+            <!-- Nutrition Reminder -->
+            <div class="nutrition-reminder">
+                <strong>&#129514; Remember:</strong> Start each meal with protein first. Keep 5h gaps between meals. Finish by 9 PM. One apple before bed!
+            </div>
+
+            <div class="form-actions">
+                <button class="btn btn-secondary btn-lg" onclick="generateMealPlan()">
+                    &#128260; Regenerate
+                </button>
+                <button class="btn btn-primary btn-lg" onclick="exportPDF()">
+                    &#128196; Export as PDF
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Food Tracker Section -->
+    <section id="tracker" class="section section-dark hidden">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge bg-secondary/10 text-secondary">Reverse Tracking</span>
+                <h2>Food Tracker</h2>
+                <p>Log what you actually ate and see your calorie & macro intake.</p>
+            </div>
+
+            <!-- Tracker Input -->
+            <div class="max-w-3xl mx-auto">
+                <div class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-6 shadow-lg mb-8">
+                    <h3 class="text-lg font-semibold mb-4">Add Food Item</h3>
+
+                    <!-- Food Search -->
+                    <div class="mb-4 relative">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Food Name</label>
+                        <input type="text" id="trackerFoodInput" placeholder="Start typing to search (e.g. Chicken Breast, Apple...)"
+                               class="w-full border-2 border-white/10 bg-white/5 rounded-xl px-4 py-3 text-base text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10"
+                               autocomplete="off">
+                        <div id="trackerAutocomplete" class="absolute z-50 left-0 right-0 top-full mt-1 bg-slate-800/95 backdrop-blur-lg border border-white/10 rounded-xl shadow-xl max-h-60 overflow-y-auto hidden"></div>
+                    </div>
+
+                    <!-- Amount + Unit Row -->
+                    <div class="flex gap-3 mb-4">
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Amount</label>
+                            <input type="number" id="trackerAmount" min="1" step="1" value="100" placeholder="100"
+                                   class="w-full border-2 border-white/10 bg-white/5 rounded-xl px-4 py-3 text-base text-slate-100 outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10">
+                        </div>
+                        <div class="w-40">
+                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Unit</label>
+                            <select id="trackerUnit" class="w-full border-2 border-white/10 bg-white/5 rounded-xl px-4 py-3 text-base text-slate-100 outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 appearance-none cursor-pointer">
+                                <option value="g">Grams (g)</option>
+                                <option value="ml">Milliliters (ml)</option>
+                                <option value="piece">Piece(s)</option>
+                                <option value="tbsp">Tablespoon (tbsp)</option>
+                                <option value="tsp">Teaspoon (tsp)</option>
+                                <option value="cup">Cup</option>
+                                <option value="slice">Slice(s)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Nutrition Preview -->
+                    <div id="trackerPreview" class="hidden mb-4 p-4 bg-white/5 rounded-xl border border-white/10">
+                        <div class="text-sm text-slate-400 mb-2">Nutrition preview:</div>
+                        <div class="grid grid-cols-5 gap-2 text-center">
+                            <div><span class="block text-lg font-bold text-primary" id="previewKcal">-</span><span class="text-xs text-slate-500">kcal</span></div>
+                            <div><span class="block text-lg font-bold text-protein" id="previewProtein">-</span><span class="text-xs text-slate-500">Protein</span></div>
+                            <div><span class="block text-lg font-bold text-carbsc" id="previewCarbs">-</span><span class="text-xs text-slate-500">Carbs</span></div>
+                            <div><span class="block text-lg font-bold text-fatsc" id="previewFat">-</span><span class="text-xs text-slate-500">Fat</span></div>
+                            <div><span class="block text-lg font-bold text-fiberc" id="previewFiber">-</span><span class="text-xs text-slate-500">Fiber</span></div>
+                        </div>
+                    </div>
+
+                    <button onclick="addTrackerItem()" class="btn btn-primary w-full justify-center text-base py-3">
+                        + Add to Log
+                    </button>
+                </div>
+
+                <!-- Tracked Items List -->
+                <div id="trackerList" class="space-y-3 mb-6">
+                    <!-- Dynamically populated -->
+                </div>
+
+                <!-- Tracker Daily Total -->
+                <div id="trackerTotal" class="hidden bg-white/5 backdrop-blur-lg rounded-2xl border-2 border-primary/20 p-6 shadow-lg">
+                    <h3 class="text-center text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Daily Total</h3>
+                    <div class="grid grid-cols-5 gap-4 text-center">
+                        <div>
+                            <div class="text-3xl font-extrabold text-primary" id="totalKcal">0</div>
+                            <div class="text-xs font-semibold text-slate-500 uppercase">kcal</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-extrabold text-protein" id="totalProtein">0</div>
+                            <div class="text-xs font-semibold text-slate-500 uppercase">Protein (g)</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-extrabold text-carbsc" id="totalCarbs">0</div>
+                            <div class="text-xs font-semibold text-slate-500 uppercase">Carbs (g)</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-extrabold text-fatsc" id="totalFat">0</div>
+                            <div class="text-xs font-semibold text-slate-500 uppercase">Fat (g)</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-extrabold text-fiberc" id="totalFiber">0</div>
+                            <div class="text-xs font-semibold text-slate-500 uppercase">Fiber (g)</div>
+                        </div>
+                    </div>
+                    <!-- Target comparison -->
+                    <div id="trackerTargetComparison" class="hidden mt-4 pt-4 border-t border-white/10">
+                        <div class="text-center text-sm text-slate-500 mb-3">vs. your daily target</div>
+                        <div class="grid grid-cols-5 gap-4 text-center">
+                            <div><div class="text-sm font-bold" id="diffKcal">-</div><div class="text-[10px] text-slate-500">kcal</div></div>
+                            <div><div class="text-sm font-bold" id="diffProtein">-</div><div class="text-[10px] text-slate-500">Protein</div></div>
+                            <div><div class="text-sm font-bold" id="diffCarbs">-</div><div class="text-[10px] text-slate-500">Carbs</div></div>
+                            <div><div class="text-sm font-bold" id="diffFat">-</div><div class="text-[10px] text-slate-500">Fat</div></div>
+                            <div><div class="text-sm font-bold" id="diffFiber">-</div><div class="text-[10px] text-slate-500">Fiber</div></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 text-center">
+                        <button onclick="clearTracker()" class="btn btn-secondary text-sm">
+                            &#128465; Clear All
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer bg-gradient-to-b from-[#0b1120] to-[#060a14]">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span class="nav-logo">&#129514;</span> NourishLab
+                </div>
+                <p>Disclaimer: This app does not replace professional nutrition counseling. For health issues, please consult a doctor or certified nutritionist.</p>
+                <p class="footer-copy">&copy; 2026 NourishLab - Calculations based on Mifflin-St Jeor formula &amp; DGE recommendations</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
