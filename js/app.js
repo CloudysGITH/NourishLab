@@ -461,6 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initTracker();
     loadFromStorage();
     initAutoSave();
+    renderHistory();
 });
 
 function initNavigation() {
@@ -1543,6 +1544,231 @@ function renderTracker() {
     } else {
         compDiv.classList.add('hidden');
     }
+}
+
+// ==========================================
+// TRACKING HISTORY & DAILY FEEDBACK
+// ==========================================
+function getTrackingHistory() {
+    try {
+        return JSON.parse(localStorage.getItem('nourishlab_history') || '[]');
+    } catch { return []; }
+}
+
+function saveTrackingHistory(history) {
+    localStorage.setItem('nourishlab_history', JSON.stringify(history));
+}
+
+function finishDay() {
+    if (state.trackerItems.length === 0) {
+        alert('No foods tracked today. Add some items first.');
+        return;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const history = getTrackingHistory();
+
+    // Check if already tracked today
+    if (history.some(d => d.date === today)) {
+        if (!confirm('You already have an entry for today. Replace it?')) return;
+        const idx = history.findIndex(d => d.date === today);
+        history.splice(idx, 1);
+    }
+
+    const totals = state.trackerItems.reduce((acc, item) => ({
+        kcal: acc.kcal + item.kcal,
+        protein: acc.protein + item.protein,
+        carbs: acc.carbs + item.carbs,
+        fat: acc.fat + item.fat,
+        fiber: acc.fiber + item.fiber,
+    }), { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 });
+
+    const entry = {
+        date: today,
+        items: state.trackerItems.map(i => ({ name: i.name, grams: i.grams, kcal: i.kcal, protein: i.protein, carbs: i.carbs, fat: i.fat, fiber: i.fiber })),
+        totals: {
+            kcal: Math.round(totals.kcal),
+            protein: Math.round(totals.protein * 10) / 10,
+            carbs: Math.round(totals.carbs * 10) / 10,
+            fat: Math.round(totals.fat * 10) / 10,
+            fiber: Math.round(totals.fiber * 10) / 10,
+        },
+        targets: state.results.targetKcal ? {
+            kcal: state.results.targetKcal,
+            protein: state.macros.protein.grams,
+            carbs: state.macros.carbs.grams,
+            fat: state.macros.fats.grams,
+            fiber: state.macros.fiber.grams,
+        } : null,
+        mealCount: countMeals(),
+    };
+
+    history.unshift(entry);
+    if (history.length > 90) history.length = 90; // keep 90 days max
+    saveTrackingHistory(history);
+
+    generateFeedback(entry);
+    renderHistory();
+}
+
+function countMeals() {
+    // Rough estimation: items added with significant time gaps or large calorie jumps
+    // Simple heuristic: count distinct protein sources as meals
+    const proteins = new Set();
+    state.trackerItems.forEach(item => {
+        const food = findFood(item.name);
+        if (food && food.protein > 8) proteins.add(item.name);
+    });
+    return Math.max(proteins.size, 1);
+}
+
+function generateFeedback(entry) {
+    const fb = document.getElementById('feedbackContent');
+    const t = entry.totals;
+    const tgt = entry.targets;
+    const items = entry.items;
+    const tips = [];
+
+    // --- Macro analysis ---
+    if (tgt) {
+        const kcalPct = Math.round((t.kcal / tgt.kcal) * 100);
+        const protPct = Math.round((t.protein / tgt.protein) * 100);
+        const carbPct = Math.round((t.carbs / tgt.carbs) * 100);
+        const fatPct = Math.round((t.fat / tgt.fat) * 100);
+        const fiberPct = Math.round((t.fiber / tgt.fiber) * 100);
+
+        // Calories
+        if (kcalPct < 85) {
+            tips.push({ icon: '&#9888;', type: 'warning', text: `<strong>Undereating:</strong> You ate only <strong>${kcalPct}%</strong> of your calorie target (${t.kcal} of ${tgt.kcal} kcal). Chronic undereating slows metabolism and leads to muscle loss. Try adding a portion of complex carbs or healthy fats.` });
+        } else if (kcalPct > 115) {
+            tips.push({ icon: '&#128200;', type: 'over', text: `<strong>Over target:</strong> You consumed <strong>${kcalPct}%</strong> of your calorie target (${t.kcal} of ${tgt.kcal} kcal). An occasional surplus is normal — if this is frequent, consider smaller portions or less calorie-dense foods.` });
+        } else {
+            tips.push({ icon: '&#9989;', type: 'good', text: `<strong>Calories on point!</strong> You hit <strong>${kcalPct}%</strong> of your target (${t.kcal} of ${tgt.kcal} kcal). Well done!` });
+        }
+
+        // Protein
+        if (protPct < 80) {
+            tips.push({ icon: '&#127830;', type: 'warning', text: `<strong>Low protein:</strong> Only ${t.protein}g of ${tgt.protein}g target (${protPct}%). Protein is critical for muscle maintenance and satiety. Consider adding a protein-rich food to your next meal.` });
+        } else if (protPct >= 95) {
+            tips.push({ icon: '&#128170;', type: 'good', text: `<strong>Protein target hit!</strong> ${t.protein}g of ${tgt.protein}g (${protPct}%). Your muscles are well-supplied.` });
+        }
+
+        // Fiber
+        if (fiberPct < 70) {
+            tips.push({ icon: '&#129382;', type: 'warning', text: `<strong>Low fiber:</strong> ${t.fiber}g of ${tgt.fiber}g target. Fiber supports digestion, gut health, and satiety. Add more vegetables, legumes, or whole grains.` });
+        } else if (fiberPct >= 90) {
+            tips.push({ icon: '&#127793;', type: 'good', text: `<strong>Great fiber intake!</strong> ${t.fiber}g — excellent for your gut microbiome.` });
+        }
+
+        // Fat
+        if (fatPct > 130) {
+            tips.push({ icon: '&#129361;', type: 'over', text: `<strong>High fat day:</strong> ${t.fat}g vs. ${tgt.fat}g target (${fatPct}%). Check if oils, nuts, or cheese portions were larger than planned.` });
+        }
+
+        // Carbs
+        if (carbPct < 60) {
+            tips.push({ icon: '&#127834;', type: 'warning', text: `<strong>Very low carbs:</strong> Only ${t.carbs}g of ${tgt.carbs}g (${carbPct}%). Unless intentional, low carbs can reduce energy and workout performance.` });
+        }
+    } else {
+        tips.push({ icon: '&#128161;', type: 'info', text: `<strong>No targets set.</strong> Fill out your profile and generate a meal plan first to get personalized feedback comparing your intake to your goals.` });
+    }
+
+    // --- Rule compliance ---
+    const mealCount = entry.mealCount;
+    if (mealCount > 3) {
+        tips.push({ icon: '&#128337;', type: 'warning', text: `<strong>Rule #1 — 3 meals/day:</strong> It looks like you may have had ${mealCount} distinct protein sources today, which could indicate more than 3 meals. Try to consolidate into 3 meals with 5-hour gaps.` });
+    } else if (mealCount <= 3) {
+        tips.push({ icon: '&#128337;', type: 'good', text: `<strong>Rule #1 &#9989;</strong> Looks like approximately ${mealCount} meal(s) — good structure!` });
+    }
+
+    // --- Protein variety ---
+    const proteinItems = items.filter(i => { const f = findFood(i.name); return f && f.protein > 8; });
+    const uniqueProteins = [...new Set(proteinItems.map(i => i.name))];
+    if (uniqueProteins.length >= 2) {
+        tips.push({ icon: '&#128256;', type: 'good', text: `<strong>Rule #8 — Protein rotation:</strong> You had ${uniqueProteins.length} different protein sources today (${uniqueProteins.join(', ')}). Great variety!` });
+    }
+
+    // --- Water reminder ---
+    tips.push({ icon: '&#128167;', type: 'info', text: `<strong>Hydration reminder:</strong> Don't forget your daily water target${tgt ? '' : ' (fill in your profile to calculate it)'}. Drink between meals, not during.` });
+
+    // --- Trend (if history available) ---
+    const history = getTrackingHistory();
+    if (history.length >= 3 && tgt) {
+        const last3 = history.slice(0, 3);
+        const avgKcal = Math.round(last3.reduce((s, d) => s + d.totals.kcal, 0) / last3.length);
+        const avgProt = Math.round(last3.reduce((s, d) => s + d.totals.protein, 0) / last3.length);
+        const kcalTrend = Math.round((avgKcal / tgt.kcal) * 100);
+        tips.push({ icon: '&#128200;', type: 'info', text: `<strong>3-day trend:</strong> Average ${avgKcal} kcal/day (${kcalTrend}% of target), ${avgProt}g protein. ${kcalTrend > 105 ? 'Slight surplus trend — watch portions.' : kcalTrend < 90 ? 'Slight deficit trend — make sure you eat enough.' : 'Right on track!'}` });
+    }
+
+    // Render
+    fb.innerHTML = tips.map(tip => {
+        const borderColor = tip.type === 'good' ? 'border-emerald-500/30' : tip.type === 'warning' ? 'border-amber-500/30' : tip.type === 'over' ? 'border-red-500/30' : 'border-blue-500/30';
+        const bgColor = tip.type === 'good' ? 'bg-emerald-500/5' : tip.type === 'warning' ? 'bg-amber-500/5' : tip.type === 'over' ? 'bg-red-500/5' : 'bg-blue-500/5';
+        return `<div class="flex gap-3 items-start p-4 rounded-xl border ${borderColor} ${bgColor} mb-3">
+            <span class="text-xl flex-shrink-0">${tip.icon}</span>
+            <div class="text-sm text-slate-300 leading-relaxed">${tip.text}</div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('trackerFeedback').classList.remove('hidden');
+    document.getElementById('trackerFeedback').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderHistory() {
+    const container = document.getElementById('trackerHistory');
+    const history = getTrackingHistory();
+
+    if (history.length === 0) {
+        container.innerHTML = '<p class="text-center text-slate-500 text-sm">No days tracked yet. Finish a day to build your history.</p>';
+        return;
+    }
+
+    container.innerHTML = history.map((entry, idx) => {
+        const d = new Date(entry.date);
+        const dayName = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        const t = entry.totals;
+        const tgt = entry.targets;
+        const kcalPct = tgt ? Math.round((t.kcal / tgt.kcal) * 100) : null;
+        const kcalColor = kcalPct === null ? 'text-slate-400' : kcalPct >= 90 && kcalPct <= 110 ? 'text-emerald-400' : kcalPct < 90 ? 'text-amber-400' : 'text-red-400';
+        const protColor = tgt && t.protein >= tgt.protein * 0.9 ? 'text-emerald-400' : 'text-slate-300';
+
+        return `<div class="bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 cursor-pointer transition-all hover:border-primary/30 hover:bg-white/8" onclick="toggleHistoryDetail(${idx})">
+            <div class="flex justify-between items-center">
+                <div>
+                    <div class="font-semibold text-sm">${dayName}</div>
+                    <div class="text-xs text-slate-500">${entry.items.length} items</div>
+                </div>
+                <div class="flex gap-4 text-right text-sm">
+                    <div><span class="font-bold ${kcalColor}">${t.kcal}</span> <span class="text-xs text-slate-500">kcal${kcalPct !== null ? ' (' + kcalPct + '%)' : ''}</span></div>
+                    <div><span class="font-bold ${protColor}">${t.protein}g</span> <span class="text-xs text-slate-500">P</span></div>
+                    <div><span class="font-bold text-slate-300">${t.carbs}g</span> <span class="text-xs text-slate-500">C</span></div>
+                    <div><span class="font-bold text-slate-300">${t.fat}g</span> <span class="text-xs text-slate-500">F</span></div>
+                </div>
+            </div>
+            <div id="historyDetail${idx}" class="hidden mt-3 pt-3 border-t border-white/5">
+                <div class="grid gap-1 text-xs text-slate-400">
+                    ${entry.items.map(i => `<div class="flex justify-between"><span>${i.name}</span><span class="text-slate-500">${i.grams}g — ${i.kcal} kcal</span></div>`).join('')}
+                </div>
+                <div class="mt-3 text-right">
+                    <button onclick="event.stopPropagation(); deleteHistoryEntry(${idx})" class="text-xs text-red-400/60 hover:text-red-400 transition-colors">Delete this day</button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function toggleHistoryDetail(idx) {
+    const el = document.getElementById('historyDetail' + idx);
+    if (el) el.classList.toggle('hidden');
+}
+
+function deleteHistoryEntry(idx) {
+    if (!confirm('Delete this tracking entry?')) return;
+    const history = getTrackingHistory();
+    history.splice(idx, 1);
+    saveTrackingHistory(history);
+    renderHistory();
 }
 
 // ==========================================
