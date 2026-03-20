@@ -16,163 +16,246 @@ const FOODS = {
         label: "&#127830; Protein Sources",
         items: {
             // === BREAKFAST-SUITABLE PROTEINS ===
-            "Eggs": { kcal: 155, protein: 13, carbs: 1.1, fat: 11, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], breakfast: true },
-            "Magerquark (low-fat quark)": { kcal: 67, protein: 12, carbs: 4, fat: 0.3, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], breakfast: true },
-            "Greek Yogurt": { kcal: 97, protein: 9, carbs: 3.6, fat: 5, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], breakfast: true },
-            "Skyr": { kcal: 63, protein: 11, carbs: 4, fat: 0.2, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], breakfast: true },
-            "Cottage Cheese": { kcal: 98, protein: 11, carbs: 3.4, fat: 4.3, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], breakfast: true },
-            "Natural Yogurt 3.8%": { kcal: 66, protein: 4, carbs: 4.7, fat: 3.8, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], breakfast: true },
-            "Harzer Cheese": { kcal: 126, protein: 27, carbs: 0.5, fat: 0.7, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], breakfast: true },
+            "Eggs": { kcal: 155, protein: 13, carbs: 1.1, fat: 11, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["european", "asian", "indian", "mediterranean", "latin"], breakfast: true },
+            "Egg Whites": { kcal: 52, protein: 11, carbs: 0.7, fat: 0.2, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["european", "asian", "indian", "mediterranean", "latin"], breakfast: true },
+            "Magerquark (low-fat quark)": { kcal: 67, protein: 12, carbs: 4, fat: 0.3, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["european"], breakfast: true },
+            "Greek Yogurt": { kcal: 97, protein: 9, carbs: 3.6, fat: 5, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: true },
+            "Skyr": { kcal: 63, protein: 11, carbs: 4, fat: 0.2, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["european"], breakfast: true },
+            "Cottage Cheese": { kcal: 98, protein: 11, carbs: 3.4, fat: 4.3, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["european"], breakfast: true },
+            "Natural Yogurt 3.8%": { kcal: 66, protein: 4, carbs: 4.7, fat: 3.8, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["european", "indian", "mediterranean"], breakfast: true },
+            "Harzer Cheese": { kcal: 126, protein: 27, carbs: 0.5, fat: 0.7, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["european"], breakfast: true },
+            "Turkey Ham": { kcal: 104, protein: 19, carbs: 1, fat: 2.5, fiber: 0, tags: ["omnivore"], cuisine: ["european", "mediterranean"], breakfast: true },
+            "Smoked Turkey Breast": { kcal: 99, protein: 21, carbs: 0.5, fat: 1.5, fiber: 0, tags: ["omnivore"], cuisine: ["european"], breakfast: true },
 
-            // === LUNCH/DINNER PROTEINS ===
-            "Chicken Breast": { kcal: 165, protein: 31, carbs: 0, fat: 3.6, fiber: 0, tags: ["omnivore"], breakfast: false },
-            "Turkey Breast": { kcal: 135, protein: 30, carbs: 0, fat: 1.5, fiber: 0, tags: ["omnivore"], breakfast: false },
-            "Lean Beef Steak": { kcal: 187, protein: 28, carbs: 0, fat: 8, fiber: 0, tags: ["omnivore"], breakfast: false },
-            "Beef Filet": { kcal: 155, protein: 28, carbs: 0, fat: 4.5, fiber: 0, tags: ["omnivore"], breakfast: false },
-            "Pork Filet": { kcal: 143, protein: 23, carbs: 0, fat: 5.4, fiber: 0, tags: ["omnivore"], breakfast: false },
-            "Lamb Loin": { kcal: 178, protein: 25, carbs: 0, fat: 8.5, fiber: 0, tags: ["omnivore"], breakfast: false },
-            "Duck Breast": { kcal: 132, protein: 23, carbs: 0, fat: 4, fiber: 0, tags: ["omnivore"], breakfast: false },
-            "Rabbit": { kcal: 136, protein: 21, carbs: 0, fat: 5.5, fiber: 0, tags: ["omnivore"], breakfast: false },
+            // === LUNCH/DINNER PROTEINS (EUROPEAN) ===
+            "Chicken Breast": { kcal: 165, protein: 31, carbs: 0, fat: 3.6, fiber: 0, tags: ["omnivore"], cuisine: ["european", "asian", "indian", "mediterranean", "latin"], breakfast: false },
+            "Turkey Breast": { kcal: 135, protein: 30, carbs: 0, fat: 1.5, fiber: 0, tags: ["omnivore"], cuisine: ["european", "mediterranean"], breakfast: false },
+            "Lean Beef Steak": { kcal: 187, protein: 28, carbs: 0, fat: 8, fiber: 0, tags: ["omnivore"], cuisine: ["european", "latin"], breakfast: false },
+            "Beef Filet": { kcal: 155, protein: 28, carbs: 0, fat: 4.5, fiber: 0, tags: ["omnivore"], cuisine: ["european"], breakfast: false },
+            "Pork Filet": { kcal: 143, protein: 23, carbs: 0, fat: 5.4, fiber: 0, tags: ["omnivore"], cuisine: ["european", "asian"], breakfast: false },
+            "Lamb Loin": { kcal: 178, protein: 25, carbs: 0, fat: 8.5, fiber: 0, tags: ["omnivore"], cuisine: ["european", "indian", "mediterranean"], breakfast: false },
+            "Duck Breast": { kcal: 132, protein: 23, carbs: 0, fat: 4, fiber: 0, tags: ["omnivore"], cuisine: ["european", "asian"], breakfast: false },
+            "Rabbit": { kcal: 136, protein: 21, carbs: 0, fat: 5.5, fiber: 0, tags: ["omnivore"], cuisine: ["european", "mediterranean"], breakfast: false },
 
             // === FISH ===
-            "Salmon": { kcal: 208, protein: 20, carbs: 0, fat: 13, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
-            "Tuna (natural)": { kcal: 130, protein: 29, carbs: 0, fat: 1, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
-            "Shrimp": { kcal: 99, protein: 24, carbs: 0, fat: 0.3, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
-            "Cod": { kcal: 82, protein: 18, carbs: 0, fat: 0.7, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
-            "Trout": { kcal: 148, protein: 21, carbs: 0, fat: 7, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
-            "Herring": { kcal: 158, protein: 18, carbs: 0, fat: 9, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
-            "Mackerel": { kcal: 205, protein: 19, carbs: 0, fat: 14, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
-            "Sardines": { kcal: 208, protein: 25, carbs: 0, fat: 11, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
-            "Sea Bass": { kcal: 97, protein: 18, carbs: 0, fat: 2.3, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
-            "Sole": { kcal: 86, protein: 18, carbs: 0, fat: 1.2, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
-            "Turbot": { kcal: 95, protein: 16, carbs: 0, fat: 3.3, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
-            "Perch": { kcal: 82, protein: 18, carbs: 0, fat: 0.8, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
-            "Pollock": { kcal: 81, protein: 18, carbs: 0, fat: 0.6, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
-            "Swordfish": { kcal: 144, protein: 20, carbs: 0, fat: 7, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
+            "Salmon": { kcal: 208, protein: 20, carbs: 0, fat: 13, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european", "asian"], breakfast: false },
+            "Tuna (natural)": { kcal: 130, protein: 29, carbs: 0, fat: 1, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european", "asian", "mediterranean"], breakfast: false },
+            "Shrimp": { kcal: 99, protein: 24, carbs: 0, fat: 0.3, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european", "asian", "mediterranean", "latin"], breakfast: false },
+            "Cod": { kcal: 82, protein: 18, carbs: 0, fat: 0.7, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: false },
+            "Trout": { kcal: 148, protein: 21, carbs: 0, fat: 7, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european"], breakfast: false },
+            "Herring": { kcal: 158, protein: 18, carbs: 0, fat: 9, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european"], breakfast: false },
+            "Mackerel": { kcal: 205, protein: 19, carbs: 0, fat: 14, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european", "asian"], breakfast: false },
+            "Sardines": { kcal: 208, protein: 25, carbs: 0, fat: 11, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: false },
+            "Sea Bass": { kcal: 97, protein: 18, carbs: 0, fat: 2.3, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european", "mediterranean", "asian"], breakfast: false },
+            "Sole": { kcal: 86, protein: 18, carbs: 0, fat: 1.2, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european"], breakfast: false },
+            "Turbot": { kcal: 95, protein: 16, carbs: 0, fat: 3.3, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european"], breakfast: false },
+            "Perch": { kcal: 82, protein: 18, carbs: 0, fat: 0.8, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european"], breakfast: false },
+            "Pollock": { kcal: 81, protein: 18, carbs: 0, fat: 0.6, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european"], breakfast: false },
+            "Swordfish": { kcal: 144, protein: 20, carbs: 0, fat: 7, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: false },
 
             // === SEAFOOD ===
-            "Scallops": { kcal: 69, protein: 12, carbs: 3, fat: 0.5, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
-            "Mussels": { kcal: 86, protein: 12, carbs: 4, fat: 2, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
-            "Squid": { kcal: 92, protein: 18, carbs: 3, fat: 1.4, fiber: 0, tags: ["omnivore", "pescatarian"], breakfast: false },
+            "Scallops": { kcal: 69, protein: 12, carbs: 3, fat: 0.5, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european", "asian"], breakfast: false },
+            "Mussels": { kcal: 86, protein: 12, carbs: 4, fat: 2, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: false },
+            "Squid": { kcal: 92, protein: 18, carbs: 3, fat: 1.4, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["european", "asian", "mediterranean"], breakfast: false },
 
-            // === CHEESE (some breakfast, some lunch) ===
-            "Feta": { kcal: 264, protein: 14, carbs: 4, fat: 21, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], breakfast: true },
-            "Mozzarella": { kcal: 280, protein: 22, carbs: 2, fat: 17, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], breakfast: true },
-            "Ricotta": { kcal: 174, protein: 11, carbs: 3, fat: 13, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], breakfast: true },
+            // === CHEESE ===
+            "Feta": { kcal: 264, protein: 14, carbs: 4, fat: 21, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: true },
+            "Mozzarella": { kcal: 280, protein: 22, carbs: 2, fat: 17, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: true },
+            "Ricotta": { kcal: 174, protein: 11, carbs: 3, fat: 13, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: true },
+            "Halloumi": { kcal: 321, protein: 25, carbs: 2, fat: 25, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["mediterranean"], breakfast: false },
+            "Labneh": { kcal: 154, protein: 6, carbs: 4, fat: 13, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["mediterranean", "indian"], breakfast: true },
 
             // === VEGAN/VEGETARIAN ===
-            "Tofu": { kcal: 144, protein: 17, carbs: 3, fat: 8, fiber: 0.3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Tempeh": { kcal: 192, protein: 20, carbs: 8, fat: 11, fiber: 1.4, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Seitan": { kcal: 148, protein: 28, carbs: 4, fat: 2, fiber: 0.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
+            "Tofu": { kcal: 144, protein: 17, carbs: 3, fat: 8, fiber: 0.3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian", "european"], breakfast: false },
+            "Tempeh": { kcal: 192, protein: 20, carbs: 8, fat: 11, fiber: 1.4, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian", "european"], breakfast: false },
+            "Seitan": { kcal: 148, protein: 28, carbs: 4, fat: 2, fiber: 0.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian", "european"], breakfast: false },
+            "Silken Tofu": { kcal: 55, protein: 5, carbs: 2, fat: 3, fiber: 0, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: true },
 
-            // === LEGUMES AS PROTEIN (lunch/dinner) ===
-            "Chickpeas": { kcal: 164, protein: 9, carbs: 27, fat: 2.6, fiber: 8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Lentils": { kcal: 116, protein: 9, carbs: 20, fat: 0.4, fiber: 8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Red Lentils": { kcal: 116, protein: 9, carbs: 20, fat: 0.4, fiber: 8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Green Lentils": { kcal: 116, protein: 9, carbs: 20, fat: 0.4, fiber: 8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Kidney Beans": { kcal: 127, protein: 9, carbs: 22, fat: 0.5, fiber: 6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Black Beans": { kcal: 132, protein: 9, carbs: 24, fat: 0.5, fiber: 8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Mung Beans": { kcal: 105, protein: 7, carbs: 19, fat: 0.4, fiber: 5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Edamame": { kcal: 122, protein: 11, carbs: 10, fat: 5, fiber: 5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
+            // === INDIAN PROTEINS ===
+            "Paneer": { kcal: 265, protein: 18, carbs: 1, fat: 21, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["indian"], breakfast: false },
+            "Chicken Tikka (lean)": { kcal: 148, protein: 25, carbs: 2, fat: 4.5, fiber: 0, tags: ["omnivore"], cuisine: ["indian"], breakfast: false },
+            "Tandoori Fish": { kcal: 120, protein: 22, carbs: 2, fat: 3, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["indian"], breakfast: false },
+
+            // === ASIAN PROTEINS ===
+            "Teriyaki Chicken": { kcal: 155, protein: 26, carbs: 5, fat: 3, fiber: 0, tags: ["omnivore"], cuisine: ["asian"], breakfast: false },
+            "Steamed Fish Fillet": { kcal: 96, protein: 20, carbs: 0, fat: 1.5, fiber: 0, tags: ["omnivore", "pescatarian"], cuisine: ["asian"], breakfast: false },
+            "Korean Beef (Bulgogi)": { kcal: 165, protein: 24, carbs: 6, fat: 5, fiber: 0, tags: ["omnivore"], cuisine: ["asian"], breakfast: false },
+
+            // === LATIN PROTEINS ===
+            "Carne Asada": { kcal: 170, protein: 26, carbs: 0, fat: 7, fiber: 0, tags: ["omnivore"], cuisine: ["latin"], breakfast: false },
+            "Pollo Asado": { kcal: 150, protein: 28, carbs: 1, fat: 4, fiber: 0, tags: ["omnivore"], cuisine: ["latin"], breakfast: false },
+
+            // === LEGUMES AS PROTEIN ===
+            "Chickpeas": { kcal: 164, protein: 9, carbs: 27, fat: 2.6, fiber: 8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "indian", "mediterranean"], breakfast: false },
+            "Lentils": { kcal: 116, protein: 9, carbs: 20, fat: 0.4, fiber: 8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "indian", "mediterranean"], breakfast: false },
+            "Red Lentils": { kcal: 116, protein: 9, carbs: 20, fat: 0.4, fiber: 8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "indian"], breakfast: false },
+            "Green Lentils": { kcal: 116, protein: 9, carbs: 20, fat: 0.4, fiber: 8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "indian", "mediterranean"], breakfast: false },
+            "Kidney Beans": { kcal: 127, protein: 9, carbs: 22, fat: 0.5, fiber: 6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "indian", "latin"], breakfast: false },
+            "Black Beans": { kcal: 132, protein: 9, carbs: 24, fat: 0.5, fiber: 8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["latin", "european"], breakfast: false },
+            "Mung Beans": { kcal: 105, protein: 7, carbs: 19, fat: 0.4, fiber: 5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian", "indian"], breakfast: false },
+            "Edamame": { kcal: 122, protein: 11, carbs: 10, fat: 5, fiber: 5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+            "Pinto Beans": { kcal: 143, protein: 9, carbs: 27, fat: 0.6, fiber: 9, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["latin"], breakfast: false },
+            "Dal (Toor Dal)": { kcal: 128, protein: 8, carbs: 22, fat: 0.4, fiber: 5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["indian"], breakfast: false },
+            "Chana Dal": { kcal: 148, protein: 9, carbs: 25, fat: 2, fiber: 7, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["indian"], breakfast: false },
         }
     },
     kohlenhydrate: {
         label: "&#127834; Carbohydrate Sources",
         items: {
             // === BREAKFAST CARBS ===
-            "Oatmeal (Haferflocken)": { kcal: 379, protein: 13.5, carbs: 67, fat: 7, fiber: 10, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Spelt Flakes (Dinkelflocken)": { kcal: 352, protein: 12, carbs: 69, fat: 2.7, fiber: 8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Whole Grain Bread (Vollkornbrot)": { kcal: 213, protein: 7, carbs: 41, fat: 1.3, fiber: 6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Rye Crispbread (Knaeckebrot)": { kcal: 366, protein: 11, carbs: 65, fat: 3.5, fiber: 15, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Rye Mixed Bread": { kcal: 219, protein: 6.6, carbs: 43, fat: 1.1, fiber: 6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
+            "Oatmeal (Haferflocken)": { kcal: 379, protein: 13.5, carbs: 67, fat: 7, fiber: 10, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "asian"], breakfast: true },
+            "Spelt Flakes (Dinkelflocken)": { kcal: 352, protein: 12, carbs: 69, fat: 2.7, fiber: 8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: true },
+            "Whole Grain Bread (Vollkornbrot)": { kcal: 213, protein: 7, carbs: 41, fat: 1.3, fiber: 6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: true },
+            "Rye Crispbread (Knaeckebrot)": { kcal: 366, protein: 11, carbs: 65, fat: 3.5, fiber: 15, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: true },
+            "Rye Mixed Bread": { kcal: 219, protein: 6.6, carbs: 43, fat: 1.1, fiber: 6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: true },
+            "Pita Bread": { kcal: 275, protein: 9, carbs: 55, fat: 1.2, fiber: 2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["mediterranean"], breakfast: true },
 
             // === LUNCH/DINNER CARBS ===
-            "Brown Rice": { kcal: 350, protein: 7.5, carbs: 74, fat: 2.7, fiber: 3.5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Basmati Rice": { kcal: 354, protein: 7, carbs: 78, fat: 0.6, fiber: 1.3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Whole Wheat Pasta": { kcal: 348, protein: 13, carbs: 65, fat: 2.5, fiber: 7, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Potatoes": { kcal: 77, protein: 2, carbs: 17, fat: 0.1, fiber: 2.2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Sweet Potatoes": { kcal: 86, protein: 1.6, carbs: 20, fat: 0.1, fiber: 3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Quinoa": { kcal: 368, protein: 14, carbs: 64, fat: 6, fiber: 7, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Couscous": { kcal: 376, protein: 12.8, carbs: 77, fat: 0.6, fiber: 5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Millet (Hirse)": { kcal: 378, protein: 11, carbs: 73, fat: 4.2, fiber: 3.9, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Buckwheat": { kcal: 343, protein: 13.3, carbs: 72, fat: 3.4, fiber: 10, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
+            "Brown Rice": { kcal: 350, protein: 7.5, carbs: 74, fat: 2.7, fiber: 3.5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "asian", "indian", "latin"], breakfast: false },
+            "Basmati Rice": { kcal: 354, protein: 7, carbs: 78, fat: 0.6, fiber: 1.3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "indian", "asian"], breakfast: false },
+            "Jasmine Rice": { kcal: 350, protein: 7, carbs: 79, fat: 0.4, fiber: 0.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+            "Whole Wheat Pasta": { kcal: 348, protein: 13, carbs: 65, fat: 2.5, fiber: 7, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: false },
+            "Potatoes": { kcal: 77, protein: 2, carbs: 17, fat: 0.1, fiber: 2.2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "indian", "latin"], breakfast: false },
+            "Sweet Potatoes": { kcal: 86, protein: 1.6, carbs: 20, fat: 0.1, fiber: 3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "asian", "latin"], breakfast: false },
+            "Quinoa": { kcal: 368, protein: 14, carbs: 64, fat: 6, fiber: 7, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "latin", "mediterranean"], breakfast: false },
+            "Couscous": { kcal: 376, protein: 12.8, carbs: 77, fat: 0.6, fiber: 5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["mediterranean", "european"], breakfast: false },
+            "Millet (Hirse)": { kcal: 378, protein: 11, carbs: 73, fat: 4.2, fiber: 3.9, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "indian"], breakfast: false },
+            "Buckwheat": { kcal: 343, protein: 13.3, carbs: 72, fat: 3.4, fiber: 10, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "asian"], breakfast: false },
+            "Bulgur": { kcal: 342, protein: 12, carbs: 76, fat: 1.3, fiber: 8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["mediterranean"], breakfast: false },
+
+            // === ASIAN CARBS ===
+            "Rice Noodles": { kcal: 360, protein: 3.4, carbs: 83, fat: 0.6, fiber: 1.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+            "Soba Noodles": { kcal: 336, protein: 14, carbs: 74, fat: 0.7, fiber: 3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+            "Udon Noodles": { kcal: 338, protein: 10, carbs: 74, fat: 1, fiber: 2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+            "Glass Noodles": { kcal: 334, protein: 0.1, carbs: 82, fat: 0.1, fiber: 0, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+
+            // === INDIAN CARBS ===
+            "Naan Bread": { kcal: 290, protein: 9, carbs: 50, fat: 5, fiber: 2, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["indian"], breakfast: false },
+            "Chapati": { kcal: 240, protein: 8, carbs: 48, fat: 3, fiber: 4, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["indian"], breakfast: true },
+            "Idli (steamed rice cake)": { kcal: 130, protein: 4, carbs: 26, fat: 0.5, fiber: 1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["indian"], breakfast: true },
+            "Dosa (plain)": { kcal: 168, protein: 4, carbs: 28, fat: 4, fiber: 1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["indian"], breakfast: true },
+
+            // === LATIN CARBS ===
+            "Corn Tortilla": { kcal: 218, protein: 6, carbs: 44, fat: 3, fiber: 5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["latin"], breakfast: true },
+            "Plantain": { kcal: 122, protein: 1.3, carbs: 32, fat: 0.4, fiber: 2.3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["latin"], breakfast: false },
+            "Yuca (Cassava)": { kcal: 160, protein: 1.4, carbs: 38, fat: 0.3, fiber: 1.8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["latin"], breakfast: false },
         }
     },
     gemuese: {
         label: "&#129382; Vegetables",
         items: {
-            "Broccoli": { kcal: 34, protein: 2.8, carbs: 7, fat: 0.4, fiber: 2.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Spinach": { kcal: 23, protein: 2.9, carbs: 3.6, fat: 0.4, fiber: 2.2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Zucchini": { kcal: 17, protein: 1.2, carbs: 3.1, fat: 0.3, fiber: 1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Bell Pepper": { kcal: 31, protein: 1, carbs: 6, fat: 0.3, fiber: 2.1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Tomatoes": { kcal: 18, protein: 0.9, carbs: 3.9, fat: 0.2, fiber: 1.2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Cucumber": { kcal: 15, protein: 0.7, carbs: 3.6, fat: 0.1, fiber: 0.5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Cauliflower": { kcal: 25, protein: 1.9, carbs: 5, fat: 0.3, fiber: 2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Green Beans": { kcal: 31, protein: 1.8, carbs: 7, fat: 0.1, fiber: 3.4, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Mushrooms": { kcal: 22, protein: 3.1, carbs: 3.3, fat: 0.3, fiber: 1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Carrots": { kcal: 41, protein: 0.9, carbs: 10, fat: 0.2, fiber: 2.8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Eggplant": { kcal: 25, protein: 1, carbs: 6, fat: 0.2, fiber: 3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Asparagus": { kcal: 20, protein: 2.2, carbs: 3.9, fat: 0.1, fiber: 2.1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Brussels Sprouts": { kcal: 43, protein: 3.4, carbs: 9, fat: 0.3, fiber: 3.8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Fennel": { kcal: 31, protein: 1.2, carbs: 7.3, fat: 0.2, fiber: 3.1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Artichoke": { kcal: 47, protein: 3.3, carbs: 11, fat: 0.2, fiber: 5.4, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Sauerkraut": { kcal: 19, protein: 0.9, carbs: 4.3, fat: 0.1, fiber: 2.9, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Kohlrabi": { kcal: 27, protein: 1.7, carbs: 6.2, fat: 0.1, fiber: 3.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Pumpkin": { kcal: 26, protein: 1, carbs: 6.5, fat: 0.1, fiber: 0.5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Swiss Chard (Mangold)": { kcal: 19, protein: 1.8, carbs: 3.7, fat: 0.2, fiber: 1.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Pak Choi": { kcal: 13, protein: 1.5, carbs: 2.2, fat: 0.2, fiber: 1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Romanesco": { kcal: 25, protein: 2.5, carbs: 4.1, fat: 0.4, fiber: 2.4, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Celery Stalk": { kcal: 16, protein: 0.7, carbs: 3, fat: 0.2, fiber: 1.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Radishes": { kcal: 16, protein: 0.7, carbs: 3.4, fat: 0.1, fiber: 1.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
+            "Broccoli": { kcal: 34, protein: 2.8, carbs: 7, fat: 0.4, fiber: 2.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "asian", "mediterranean"], breakfast: false },
+            "Spinach": { kcal: 23, protein: 2.9, carbs: 3.6, fat: 0.4, fiber: 2.2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "indian", "mediterranean", "asian"], breakfast: false },
+            "Zucchini": { kcal: 17, protein: 1.2, carbs: 3.1, fat: 0.3, fiber: 1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: false },
+            "Bell Pepper": { kcal: 31, protein: 1, carbs: 6, fat: 0.3, fiber: 2.1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "mediterranean", "latin"], breakfast: false },
+            "Tomatoes": { kcal: 18, protein: 0.9, carbs: 3.9, fat: 0.2, fiber: 1.2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "indian", "mediterranean", "latin"], breakfast: true },
+            "Cucumber": { kcal: 15, protein: 0.7, carbs: 3.6, fat: 0.1, fiber: 0.5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "indian", "mediterranean", "asian"], breakfast: true },
+            "Cauliflower": { kcal: 25, protein: 1.9, carbs: 5, fat: 0.3, fiber: 2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "indian"], breakfast: false },
+            "Green Beans": { kcal: 31, protein: 1.8, carbs: 7, fat: 0.1, fiber: 3.4, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "asian"], breakfast: false },
+            "Mushrooms": { kcal: 22, protein: 3.1, carbs: 3.3, fat: 0.3, fiber: 1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "asian"], breakfast: false },
+            "Carrots": { kcal: 41, protein: 0.9, carbs: 10, fat: 0.2, fiber: 2.8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "asian", "indian"], breakfast: false },
+            "Eggplant": { kcal: 25, protein: 1, carbs: 6, fat: 0.2, fiber: 3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "indian", "mediterranean", "asian"], breakfast: false },
+            "Asparagus": { kcal: 20, protein: 2.2, carbs: 3.9, fat: 0.1, fiber: 2.1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: false },
+            "Brussels Sprouts": { kcal: 43, protein: 3.4, carbs: 9, fat: 0.3, fiber: 3.8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: false },
+            "Fennel": { kcal: 31, protein: 1.2, carbs: 7.3, fat: 0.2, fiber: 3.1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: false },
+            "Artichoke": { kcal: 47, protein: 3.3, carbs: 11, fat: 0.2, fiber: 5.4, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: false },
+            "Sauerkraut": { kcal: 19, protein: 0.9, carbs: 4.3, fat: 0.1, fiber: 2.9, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: false },
+            "Kohlrabi": { kcal: 27, protein: 1.7, carbs: 6.2, fat: 0.1, fiber: 3.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: false },
+            "Pumpkin": { kcal: 26, protein: 1, carbs: 6.5, fat: 0.1, fiber: 0.5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "latin", "asian"], breakfast: false },
+            "Swiss Chard (Mangold)": { kcal: 19, protein: 1.8, carbs: 3.7, fat: 0.2, fiber: 1.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: false },
+            "Pak Choi": { kcal: 13, protein: 1.5, carbs: 2.2, fat: 0.2, fiber: 1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+            "Romanesco": { kcal: 25, protein: 2.5, carbs: 4.1, fat: 0.4, fiber: 2.4, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: false },
+            "Celery Stalk": { kcal: 16, protein: 0.7, carbs: 3, fat: 0.2, fiber: 1.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: false },
+            "Radishes": { kcal: 16, protein: 0.7, carbs: 3.4, fat: 0.1, fiber: 1.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: true },
+
+            // === ASIAN VEGETABLES ===
+            "Bok Choy": { kcal: 13, protein: 1.5, carbs: 2.2, fat: 0.2, fiber: 1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+            "Bean Sprouts": { kcal: 31, protein: 3, carbs: 6, fat: 0.2, fiber: 1.8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+            "Snow Peas": { kcal: 42, protein: 2.8, carbs: 7.6, fat: 0.2, fiber: 2.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+            "Daikon Radish": { kcal: 18, protein: 0.6, carbs: 4.1, fat: 0.1, fiber: 1.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+            "Napa Cabbage": { kcal: 16, protein: 1.2, carbs: 3.2, fat: 0.2, fiber: 1.2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+            "Bamboo Shoots": { kcal: 27, protein: 2.6, carbs: 5.2, fat: 0.3, fiber: 2.2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+            "Lotus Root": { kcal: 74, protein: 2.6, carbs: 17, fat: 0.1, fiber: 4.9, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+            "Shiitake Mushrooms": { kcal: 34, protein: 2.2, carbs: 7, fat: 0.5, fiber: 2.5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+            "Edamame Pods": { kcal: 122, protein: 11, carbs: 10, fat: 5, fiber: 5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+
+            // === INDIAN VEGETABLES ===
+            "Okra (Bhindi)": { kcal: 33, protein: 1.9, carbs: 7, fat: 0.2, fiber: 3.2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["indian"], breakfast: false },
+            "Bitter Gourd (Karela)": { kcal: 17, protein: 1, carbs: 3.7, fat: 0.2, fiber: 2.8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["indian", "asian"], breakfast: false },
+            "Drumstick (Moringa Pods)": { kcal: 37, protein: 2, carbs: 8.5, fat: 0.2, fiber: 3.2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["indian"], breakfast: false },
+            "Ridge Gourd (Tori)": { kcal: 18, protein: 1.2, carbs: 3.4, fat: 0.2, fiber: 1.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["indian"], breakfast: false },
+
+            // === LATIN VEGETABLES ===
+            "Chayote": { kcal: 19, protein: 0.8, carbs: 4.5, fat: 0.1, fiber: 1.7, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["latin"], breakfast: false },
+            "Nopales (Cactus)": { kcal: 16, protein: 1.3, carbs: 3.3, fat: 0.1, fiber: 2.2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["latin"], breakfast: false },
+            "Jicama": { kcal: 38, protein: 0.7, carbs: 9, fat: 0.1, fiber: 4.9, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["latin"], breakfast: false },
+
+            // === MEDITERRANEAN VEGETABLES ===
+            "Sun-dried Tomatoes": { kcal: 258, protein: 14, carbs: 56, fat: 3, fiber: 12, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["mediterranean"], breakfast: false },
+            "Roasted Red Pepper": { kcal: 28, protein: 0.9, carbs: 5.5, fat: 0.3, fiber: 1.7, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["mediterranean"], breakfast: false },
         }
     },
     salate: {
         label: "&#129388; Salads & Leafy Greens",
         items: {
-            "Mixed Leaf Salad": { kcal: 14, protein: 1.3, carbs: 2.2, fat: 0.2, fiber: 1.8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Lamb's Lettuce (Feldsalat)": { kcal: 14, protein: 1.8, carbs: 2, fat: 0.4, fiber: 1.7, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Endive": { kcal: 17, protein: 1.3, carbs: 3.4, fat: 0.2, fiber: 3.1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Frisee": { kcal: 17, protein: 1.3, carbs: 3.4, fat: 0.2, fiber: 3.1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Lollo Rosso": { kcal: 16, protein: 1.4, carbs: 2.3, fat: 0.2, fiber: 1.5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
-            "Rocket (Rucola)": { kcal: 25, protein: 2.6, carbs: 3.7, fat: 0.7, fiber: 1.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: false },
+            "Mixed Leaf Salad": { kcal: 14, protein: 1.3, carbs: 2.2, fat: 0.2, fiber: 1.8, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "asian", "indian", "mediterranean", "latin"], breakfast: false },
+            "Lamb's Lettuce (Feldsalat)": { kcal: 14, protein: 1.8, carbs: 2, fat: 0.4, fiber: 1.7, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: false },
+            "Endive": { kcal: 17, protein: 1.3, carbs: 3.4, fat: 0.2, fiber: 3.1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: false },
+            "Frisee": { kcal: 17, protein: 1.3, carbs: 3.4, fat: 0.2, fiber: 3.1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: false },
+            "Lollo Rosso": { kcal: 16, protein: 1.4, carbs: 2.3, fat: 0.2, fiber: 1.5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: false },
+            "Rocket (Rucola)": { kcal: 25, protein: 2.6, carbs: 3.7, fat: 0.7, fiber: 1.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: false },
+            "Seaweed Salad (Wakame)": { kcal: 45, protein: 3, carbs: 9, fat: 0.6, fiber: 0.5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: false },
+            "Tabbouleh Base": { kcal: 20, protein: 1.5, carbs: 3, fat: 0.5, fiber: 2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["mediterranean"], breakfast: false },
         }
     },
     obst: {
         label: "&#127815; Fruits",
         items: {
-            "Apple": { kcal: 52, protein: 0.3, carbs: 14, fat: 0.2, fiber: 2.4, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Banana": { kcal: 89, protein: 1.1, carbs: 23, fat: 0.3, fiber: 2.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Mixed Berries": { kcal: 57, protein: 0.7, carbs: 14, fat: 0.3, fiber: 2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Orange": { kcal: 47, protein: 0.9, carbs: 12, fat: 0.1, fiber: 2.4, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Pear": { kcal: 57, protein: 0.4, carbs: 15, fat: 0.1, fiber: 3.1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Kiwi": { kcal: 61, protein: 1.1, carbs: 15, fat: 0.5, fiber: 3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Mango": { kcal: 60, protein: 0.8, carbs: 15, fat: 0.4, fiber: 1.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Papaya": { kcal: 43, protein: 0.5, carbs: 11, fat: 0.3, fiber: 1.7, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Peach": { kcal: 39, protein: 0.9, carbs: 10, fat: 0.3, fiber: 1.5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Currants": { kcal: 56, protein: 1.4, carbs: 14, fat: 0.4, fiber: 4.3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Avocado": { kcal: 160, protein: 2, carbs: 9, fat: 15, fiber: 7, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
+            "Apple": { kcal: 52, protein: 0.3, carbs: 14, fat: 0.2, fiber: 2.4, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "asian", "indian", "mediterranean", "latin"], breakfast: true },
+            "Banana": { kcal: 89, protein: 1.1, carbs: 23, fat: 0.3, fiber: 2.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "asian", "indian", "latin"], breakfast: true },
+            "Mixed Berries": { kcal: 57, protein: 0.7, carbs: 14, fat: 0.3, fiber: 2, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: true },
+            "Orange": { kcal: 47, protein: 0.9, carbs: 12, fat: 0.1, fiber: 2.4, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: true },
+            "Pear": { kcal: 57, protein: 0.4, carbs: 15, fat: 0.1, fiber: 3.1, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: true },
+            "Kiwi": { kcal: 61, protein: 1.1, carbs: 15, fat: 0.5, fiber: 3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: true },
+            "Mango": { kcal: 60, protein: 0.8, carbs: 15, fat: 0.4, fiber: 1.6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "asian", "indian", "latin"], breakfast: true },
+            "Papaya": { kcal: 43, protein: 0.5, carbs: 11, fat: 0.3, fiber: 1.7, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "asian", "latin"], breakfast: true },
+            "Peach": { kcal: 39, protein: 0.9, carbs: 10, fat: 0.3, fiber: 1.5, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: true },
+            "Currants": { kcal: 56, protein: 1.4, carbs: 14, fat: 0.4, fiber: 4.3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: true },
+            "Avocado": { kcal: 160, protein: 2, carbs: 9, fat: 15, fiber: 7, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "latin", "mediterranean"], breakfast: true },
+            "Lychee": { kcal: 66, protein: 0.8, carbs: 17, fat: 0.4, fiber: 1.3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian"], breakfast: true },
+            "Dragon Fruit": { kcal: 50, protein: 1.1, carbs: 11, fat: 0.4, fiber: 3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian", "latin"], breakfast: true },
+            "Guava": { kcal: 68, protein: 2.6, carbs: 14, fat: 1, fiber: 5.4, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["indian", "latin"], breakfast: true },
+            "Passion Fruit": { kcal: 97, protein: 2.2, carbs: 23, fat: 0.7, fiber: 10, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["latin"], breakfast: true },
+            "Pomegranate Seeds": { kcal: 83, protein: 1.7, carbs: 19, fat: 1.2, fiber: 4, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["indian", "mediterranean"], breakfast: true },
         }
     },
     huelsenfruechte: {
         label: "&#129372; Nuts & Seeds",
         items: {
-            "Almonds": { kcal: 579, protein: 21, carbs: 22, fat: 50, fiber: 12, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Walnuts": { kcal: 654, protein: 15, carbs: 14, fat: 65, fiber: 7, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Chia Seeds": { kcal: 486, protein: 17, carbs: 42, fat: 31, fiber: 34, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Flaxseed (Leinsamen)": { kcal: 534, protein: 18, carbs: 29, fat: 42, fiber: 27, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Sunflower Seeds": { kcal: 584, protein: 21, carbs: 20, fat: 51, fiber: 9, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
+            "Almonds": { kcal: 579, protein: 21, carbs: 22, fat: 50, fiber: 12, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "indian", "mediterranean"], breakfast: true },
+            "Walnuts": { kcal: 654, protein: 15, carbs: 14, fat: 65, fiber: 7, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: true },
+            "Chia Seeds": { kcal: 486, protein: 17, carbs: 42, fat: 31, fiber: 34, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "latin"], breakfast: true },
+            "Flaxseed (Leinsamen)": { kcal: 534, protein: 18, carbs: 29, fat: 42, fiber: 27, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "indian"], breakfast: true },
+            "Sunflower Seeds": { kcal: 584, protein: 21, carbs: 20, fat: 51, fiber: 9, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: true },
+            "Sesame Seeds": { kcal: 573, protein: 18, carbs: 23, fat: 50, fiber: 12, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian", "indian", "mediterranean"], breakfast: true },
+            "Cashews": { kcal: 553, protein: 18, carbs: 30, fat: 44, fiber: 3, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian", "indian"], breakfast: true },
+            "Peanuts": { kcal: 567, protein: 26, carbs: 16, fat: 49, fiber: 9, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian", "latin"], breakfast: true },
+            "Pumpkin Seeds (Pepitas)": { kcal: 559, protein: 30, carbs: 11, fat: 49, fiber: 6, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "latin"], breakfast: true },
+            "Pine Nuts": { kcal: 673, protein: 14, carbs: 13, fat: 68, fiber: 4, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["mediterranean"], breakfast: true },
         }
     },
     oele: {
         label: "&#129361; Oils & Fats",
         items: {
-            "Olive Oil": { kcal: 884, protein: 0, carbs: 0, fat: 100, fiber: 0, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Coconut Oil": { kcal: 862, protein: 0, carbs: 0, fat: 100, fiber: 0, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Flaxseed Oil (Leinoel)": { kcal: 884, protein: 0, carbs: 0, fat: 100, fiber: 0, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Butter": { kcal: 717, protein: 0.9, carbs: 0.1, fat: 81, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], breakfast: true },
-            "Avocado Oil": { kcal: 884, protein: 0, carbs: 0, fat: 100, fiber: 0, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Walnut Oil": { kcal: 884, protein: 0, carbs: 0, fat: 100, fiber: 0, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], breakfast: true },
-            "Ghee": { kcal: 900, protein: 0, carbs: 0, fat: 100, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], breakfast: true },
+            "Olive Oil": { kcal: 884, protein: 0, carbs: 0, fat: 100, fiber: 0, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european", "mediterranean"], breakfast: true },
+            "Coconut Oil": { kcal: 862, protein: 0, carbs: 0, fat: 100, fiber: 0, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian", "indian"], breakfast: true },
+            "Flaxseed Oil (Leinoel)": { kcal: 884, protein: 0, carbs: 0, fat: 100, fiber: 0, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: true },
+            "Butter": { kcal: 717, protein: 0.9, carbs: 0.1, fat: 81, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["european", "indian"], breakfast: true },
+            "Avocado Oil": { kcal: 884, protein: 0, carbs: 0, fat: 100, fiber: 0, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["latin", "european"], breakfast: true },
+            "Walnut Oil": { kcal: 884, protein: 0, carbs: 0, fat: 100, fiber: 0, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["european"], breakfast: true },
+            "Ghee": { kcal: 900, protein: 0, carbs: 0, fat: 100, fiber: 0, tags: ["omnivore", "vegetarian", "pescatarian"], cuisine: ["indian", "european"], breakfast: true },
+            "Sesame Oil": { kcal: 884, protein: 0, carbs: 0, fat: 100, fiber: 0, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["asian", "indian"], breakfast: true },
+            "Mustard Oil": { kcal: 884, protein: 0, carbs: 0, fat: 100, fiber: 0, tags: ["omnivore", "vegetarian", "vegan", "pescatarian"], cuisine: ["indian"], breakfast: true },
         }
     }
 };
@@ -243,6 +326,16 @@ const RECIPES = {
         { match: ['Ricotta', 'Bread'], name: 'Ricotta Toast', tip: 'Spread ricotta on toast, drizzle with oil, add fruit or tomatoes.' },
         { match: ['Avocado', 'Bread|Toast'], name: 'Avocado Toast', tip: 'Mash avocado on bread, season with salt, pepper and lemon.' },
         { match: ['Avocado', 'Eggs'], name: 'Avocado Egg Plate', tip: 'Halved avocado with eggs, salt and chili flakes.' },
+        // === INDIAN BREAKFAST ===
+        { match: ['Idli'], name: 'Idli with Chutney', tip: 'Steamed rice cakes with coconut chutney and sambar.' },
+        { match: ['Dosa'], name: 'Masala Dosa', tip: 'Crispy fermented crepe - serve with potato filling and coconut chutney.' },
+        { match: ['Chapati', 'Paneer'], name: 'Paneer Paratha', tip: 'Stuffed chapati with spiced paneer filling.' },
+        { match: ['Chapati', 'Eggs'], name: 'Egg Paratha', tip: 'Chapati with spiced egg filling - a protein-rich Indian breakfast.' },
+        // === ASIAN BREAKFAST ===
+        { match: ['Silken Tofu'], name: 'Silken Tofu Bowl', tip: 'Warm silken tofu with soy sauce, ginger and scallions.' },
+        // === LATIN BREAKFAST ===
+        { match: ['Tortilla', 'Eggs'], name: 'Huevos Rancheros', tip: 'Eggs on corn tortilla with salsa, beans and avocado.' },
+        { match: ['Tortilla'], name: 'Breakfast Quesadilla', tip: 'Warm tortilla with cheese, eggs and fresh salsa.' },
     ],
     lunch: [
         { match: ['Chicken', 'Rice', 'Broccoli'], name: 'Chicken Rice Bowl', tip: 'Pan-sear chicken, serve over rice with steamed broccoli and soy sauce.' },
@@ -274,6 +367,29 @@ const RECIPES = {
         { match: ['Pork'], name: 'Herb Pork Medallions', tip: 'Slice filet into medallions, sear 3 min each side with rosemary.' },
         { match: ['Lamb'], name: 'Rosemary Lamb', tip: 'Season with rosemary, garlic and olive oil. Sear, then rest.' },
         { match: ['Duck'], name: 'Duck Breast with Vegetables', tip: 'Score skin, sear skin-side down 6 min, flip 4 min. Rest well.' },
+        // === ASIAN LUNCH ===
+        { match: ['Teriyaki'], name: 'Teriyaki Chicken Bowl', tip: 'Glazed chicken with rice, edamame and pickled ginger.' },
+        { match: ['Bulgogi|Korean'], name: 'Korean BBQ Bowl', tip: 'Marinated beef with rice, kimchi and sesame seeds.' },
+        { match: ['Tofu', 'Soba|Udon|Rice Noodles'], name: 'Asian Noodle Bowl', tip: 'Stir-fried tofu with noodles, pak choi and soy-sesame dressing.' },
+        { match: ['Steamed Fish'], name: 'Cantonese Steamed Fish', tip: 'Steam with ginger, scallions and light soy sauce.' },
+        { match: ['Shrimp', 'Rice Noodles|Glass Noodles'], name: 'Pad Thai Style Bowl', tip: 'Stir-fry shrimp with noodles, bean sprouts, peanuts and lime.' },
+        // === INDIAN LUNCH ===
+        { match: ['Tikka'], name: 'Chicken Tikka Masala', tip: 'Spiced chicken in a tomato-cream sauce with basmati rice.' },
+        { match: ['Tandoori'], name: 'Tandoori Fish Plate', tip: 'Yogurt-marinated fish with mint chutney and salad.' },
+        { match: ['Paneer', 'Spinach'], name: 'Palak Paneer', tip: 'Paneer cubes in creamy spinach sauce with cumin and garam masala.' },
+        { match: ['Paneer'], name: 'Paneer Tikka Bowl', tip: 'Grilled spiced paneer with raita and salad.' },
+        { match: ['Dal', 'Rice'], name: 'Dal Rice', tip: 'Yellow lentil stew with turmeric and cumin, served over basmati rice.' },
+        { match: ['Dal'], name: 'Comforting Dal', tip: 'Simmer with onion, tomato, turmeric and tempered spices.' },
+        { match: ['Chana'], name: 'Chana Masala', tip: 'Spiced chickpea curry with tomato, cumin and coriander.' },
+        // === MEDITERRANEAN LUNCH ===
+        { match: ['Halloumi', 'Salad|Rocket'], name: 'Halloumi Salad', tip: 'Pan-fried halloumi over mixed greens with pomegranate and lemon.' },
+        { match: ['Halloumi'], name: 'Grilled Halloumi Plate', tip: 'Grill until golden, serve with hummus and roasted vegetables.' },
+        { match: ['Bulgur'], name: 'Bulgur Salad Bowl', tip: 'Fluffy bulgur with herbs, tomatoes, cucumber and lemon-olive oil dressing.' },
+        // === LATIN LUNCH ===
+        { match: ['Carne Asada'], name: 'Carne Asada Bowl', tip: 'Grilled marinated beef with rice, beans, salsa and fresh cilantro.' },
+        { match: ['Pollo Asado'], name: 'Pollo Asado Plate', tip: 'Citrus-marinated grilled chicken with rice, beans and avocado.' },
+        { match: ['Black Beans', 'Rice'], name: 'Arroz con Frijoles', tip: 'Classic rice and beans with sofrito, cilantro and lime.' },
+        { match: ['Tortilla'], name: 'Taco Bowl', tip: 'Build a bowl with protein, corn tortilla strips, salsa and guacamole.' },
     ],
     dinner: [
         { match: ['Chicken', 'Salad|Lettuce'], name: 'Light Chicken Salad', tip: 'Grilled chicken strips over a fresh garden salad.' },
@@ -348,7 +464,7 @@ function saveToStorage() {
         if (checked) data['radio_' + name] = checked.value;
     });
 
-    ['ziel', 'sportart', 'umstaende', 'allergie'].forEach(name => {
+    ['ziel', 'sportart', 'umstaende', 'allergie', 'cuisine'].forEach(name => {
         data['check_' + name] = Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(el => el.value);
     });
 
@@ -397,11 +513,13 @@ function loadFromStorage() {
         }
     });
 
-    ['ziel', 'sportart', 'umstaende', 'allergie'].forEach(name => {
+    ['ziel', 'sportart', 'umstaende', 'allergie', 'cuisine'].forEach(name => {
         const vals = data['check_' + name] || [];
-        document.querySelectorAll(`input[name="${name}"]`).forEach(el => {
-            el.checked = vals.includes(el.value);
-        });
+        if (vals.length > 0) {
+            document.querySelectorAll(`input[name="${name}"]`).forEach(el => {
+                el.checked = vals.includes(el.value);
+            });
+        }
     });
 
     if ((data['check_ziel'] || []).includes('fatloss')) {
@@ -456,6 +574,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
     initForm();
     initGoalToggle();
+    initConditionConflicts();
     initWeightLossSlider();
     initFoodSelection();
     initDayTabs();
@@ -495,6 +614,69 @@ function initForm() {
         e.preventDefault();
         calculateResults();
     });
+}
+
+// === CONDITION CONFLICT HANDLING ===
+const CONDITION_CONFLICTS = [
+    { a: 'hypothyroid', b: 'hyperthyroid', msg: 'Hypothyroidism and Hyperthyroidism are opposites — you can only select one.' },
+    { a: 'pregnant', b: 'menopause', msg: 'Pregnancy and Menopause cannot be selected together.' },
+    { a: 'pregnant', b: 'edrecovery', msg: 'Pregnancy with Eating Disorder Recovery requires specialized medical care. Please consult your healthcare team. Both remain selected, but be aware of limitations.' },
+];
+
+function initConditionConflicts() {
+    document.querySelectorAll('input[name="umstaende"]').forEach(cb => {
+        cb.addEventListener('change', (e) => {
+            if (!e.target.checked) return;
+            const val = e.target.value;
+            for (const conflict of CONDITION_CONFLICTS) {
+                const otherVal = val === conflict.a ? conflict.b : val === conflict.b ? conflict.a : null;
+                if (!otherVal) continue;
+                const otherCb = document.querySelector(`input[name="umstaende"][value="${otherVal}"]`);
+                if (!otherCb || !otherCb.checked) continue;
+                // For warning-only conflicts (no uncheck), skip unchecking
+                if (val === 'pregnant' && otherVal === 'edrecovery' || val === 'edrecovery' && otherVal === 'pregnant') {
+                    showConditionWarning(conflict.msg, 'warning');
+                    continue;
+                }
+                // Mutual exclusion: uncheck the other
+                otherCb.checked = false;
+                otherCb.dispatchEvent(new Event('change', { bubbles: true }));
+                showConditionWarning(conflict.msg, 'conflict');
+            }
+            // Handle trimester visibility
+            document.getElementById('trimesterGroup').classList.toggle('hidden',
+                !document.querySelector('input[name="umstaende"][value="pregnant"]').checked);
+        });
+    });
+}
+
+function showConditionWarning(msg, type) {
+    // Remove existing warning
+    const existing = document.querySelector('.condition-warning');
+    if (existing) existing.remove();
+
+    const div = document.createElement('div');
+    div.className = 'condition-warning';
+    div.style.cssText = `
+        background: ${type === 'conflict' ? '#2d1b1b' : '#2d2a1b'};
+        border: 1px solid ${type === 'conflict' ? '#e74c3c' : '#f39c12'};
+        color: ${type === 'conflict' ? '#ff6b6b' : '#ffd93d'};
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        animation: fadeIn 0.3s ease;
+    `;
+    div.textContent = msg;
+
+    const checkboxGroup = document.querySelector('input[name="umstaende"]').closest('.checkbox-group');
+    checkboxGroup.parentElement.appendChild(div);
+
+    setTimeout(() => {
+        div.style.transition = 'opacity 0.5s';
+        div.style.opacity = '0';
+        setTimeout(() => div.remove(), 500);
+    }, 4000);
 }
 
 function initGoalToggle() {
@@ -599,12 +781,26 @@ function calculateResults() {
     // Adjustments for special conditions
     let bmrAdjust = 1.0;
     if (profile.umstaende.includes('menopause')) bmrAdjust -= 0.05;
-    if (profile.umstaende.includes('thyroid')) bmrAdjust -= 0.05;
+    if (profile.umstaende.includes('hypothyroid')) bmrAdjust -= 0.10;
+    if (profile.umstaende.includes('hyperthyroid')) bmrAdjust += 0.15;
+    if (profile.umstaende.includes('pcos')) bmrAdjust -= 0.10;
     if (profile.umstaende.includes('stress')) bmrAdjust -= 0.03;
+    if (profile.umstaende.includes('autoimmune')) bmrAdjust -= 0.07;
+    if (profile.umstaende.includes('depression')) bmrAdjust -= 0.04;
+    if (profile.umstaende.includes('recovery')) bmrAdjust += 0.17;
     bmr *= bmrAdjust;
 
     // TDEE
-    const tdee = Math.round(bmr * profile.aktivitaet);
+    let tdee = Math.round(bmr * profile.aktivitaet);
+
+    // Additional calorie needs for pregnancy and breastfeeding
+    let extraKcal = 0;
+    if (profile.umstaende.includes('pregnant')) {
+        const trimester = parseInt(document.getElementById('trimester').value) || 3;
+        if (trimester === 2) extraKcal += 340;
+        else if (trimester === 3) extraKcal += 450;
+    }
+    if (profile.umstaende.includes('breastfeeding')) extraKcal += 400;
 
     // === CALORIE TARGET ===
     let targetKcal;
@@ -633,6 +829,20 @@ function calculateResults() {
         targetDetail = 'Maintenance calories';
     }
 
+    // Eating disorder recovery: never suggest a deficit
+    if (profile.umstaende.includes('edrecovery')) {
+        if (targetKcal < tdee) {
+            targetKcal = tdee;
+            targetDetail = 'Maintenance calories (deficit disabled for ED recovery)';
+        }
+    }
+
+    // Add extra calories for pregnancy / breastfeeding
+    if (extraKcal > 0) {
+        targetKcal += extraKcal;
+        targetDetail += ` (+${extraKcal} kcal for ${profile.umstaende.includes('pregnant') ? 'pregnancy' : ''}${profile.umstaende.includes('pregnant') && profile.umstaende.includes('breastfeeding') ? ' & ' : ''}${profile.umstaende.includes('breastfeeding') ? 'breastfeeding' : ''})`;
+    }
+
     if (targetKcal < Math.round(bmr)) {
         targetKcal = Math.round(bmr);
         targetDetail += ' (raised to BMR minimum)';
@@ -648,6 +858,10 @@ function calculateResults() {
         proteinPerKg = 1.4;
     }
     if (hasFatloss && hasMuscle) proteinPerKg = 2.2;
+    // Condition-based protein adjustments
+    if (profile.umstaende.includes('pregnant') || profile.umstaende.includes('breastfeeding')) proteinPerKg = Math.max(proteinPerKg, 1.6);
+    if (profile.umstaende.includes('recovery')) proteinPerKg = Math.max(proteinPerKg, 1.8);
+    if (profile.umstaende.includes('pcos')) proteinPerKg = Math.max(proteinPerKg, 1.6);
 
     const proteinGrams = Math.round(profile.gewicht * proteinPerKg);
     const proteinKcal = proteinGrams * 4;
@@ -656,6 +870,7 @@ function calculateResults() {
     let fatPercent = 30;
     if (hasFatloss && !hasMuscle) fatPercent = 28;
     if (profile.umstaende.includes('menopause')) fatPercent = 32;
+    if (profile.umstaende.includes('pcos')) fatPercent = 30; // balanced, lower carb emphasis instead
     const fatKcal = Math.round(targetKcal * fatPercent / 100);
     const fatGrams = Math.round(fatKcal / 9);
 
@@ -796,13 +1011,35 @@ function renderHints() {
 
     // === CONDITION-BASED EDUCATIONAL HINTS ===
 
-    if (p.umstaende.includes('thyroid')) {
+    if (p.umstaende.includes('pregnant')) {
+        const tri = parseInt(document.getElementById('trimester').value) || 3;
+        const extraP = tri === 1 ? 0 : tri === 2 ? 340 : 450;
         hints.push({
-            icon: '&#129516;',
-            text: `<strong>Thyroid Issues - Impact on your metabolism:</strong><br>
-            <span class="hint-effect">&#10132; Your BMR has been reduced by 5% (from ${Math.round(state.results.bmr / 0.95)} to ${state.results.bmr} kcal).</span><br>
-            <span class="hint-effect">&#10132; Meal plan includes iodine and selenium-rich foods when available.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Your thyroid gland produces hormones (T3 and T4) that directly regulate your metabolic rate - essentially how fast your body burns calories. With thyroid issues (especially hypothyroidism), this rate drops, meaning your body needs fewer calories than the standard formula predicts. We reduce your BMR by 5% to account for this. <em>Key nutrients:</em> Iodine is the raw material for thyroid hormones (found in fish, seaweed, dairy). Selenium is needed by the enzyme that converts T4 into the active T3 form (Brazil nuts are the richest source - just 1-2 per day). Zinc also supports thyroid function (pumpkin seeds, legumes).</span>`
+            icon: '&#129328;',
+            text: `<strong>Pregnancy (Trimester ${tri}) - Eating for two, wisely:</strong><br>
+            <span class="hint-effect">&#10132; Calories increased by +${extraP} kcal/day for trimester ${tri}.</span><br>
+            <span class="hint-effect">&#10132; Protein raised to ${m.protein.grams}g/day to support fetal growth.</span><br>
+            <span class="hint-why"><strong>Why?</strong> In the 1st trimester, the embryo is tiny and calorie needs don't increase yet - focus on nutrient quality (folate!). From the 2nd trimester, fetal growth accelerates and your body needs +340 kcal/day. In the 3rd trimester, this rises to +450 kcal/day as the baby gains most of its weight. <em>Critical nutrients:</em> Folate (600 mcg/day - leafy greens, legumes) prevents neural tube defects. Iron (27 mg/day - nearly double normal) supports the 50% increase in blood volume. DHA/Omega-3 (fatty fish, walnuts) is essential for fetal brain development. <em>Avoid:</em> alcohol, high-mercury fish (swordfish, king mackerel), excess vitamin A from liver. Always consult your healthcare provider for personalized guidance.</span>`
+        });
+    }
+
+    if (p.umstaende.includes('breastfeeding')) {
+        hints.push({
+            icon: '&#129329;',
+            text: `<strong>Breastfeeding - Fueling milk production:</strong><br>
+            <span class="hint-effect">&#10132; Calories increased by +400 kcal/day for milk production.</span><br>
+            <span class="hint-effect">&#10132; Protein raised to ${m.protein.grams}g/day. Hydration is critical.</span><br>
+            <span class="hint-why"><strong>Why?</strong> Producing breast milk costs approximately 67-77 kcal per 100 mL. Exclusive breastfeeding typically produces 750-800 mL/day, requiring significant extra energy. Your body also draws from fat stores laid down during pregnancy, so the caloric supplement doesn't need to cover 100% of milk energy. <em>Key nutrients:</em> Iodine (290 mcg/day - seafood, dairy) is essential for your baby's thyroid and brain development. Choline (550 mg/day - eggs, liver) supports infant brain development. Vitamin D (600+ IU/day) and calcium (1000 mg/day) protect both your bones and your baby's skeletal development. Drink at least 2.5-3L of water daily - thirst is a reliable guide. Avoid strict dieting during breastfeeding as it can reduce milk supply.</span>`
+        });
+    }
+
+    if (p.umstaende.includes('pcos')) {
+        hints.push({
+            icon: '&#9792;&#65039;',
+            text: `<strong>PCOS - Insulin & hormonal balance:</strong><br>
+            <span class="hint-effect">&#10132; BMR reduced by 10% (hormonal metabolic impact).</span><br>
+            <span class="hint-effect">&#10132; Higher protein (${m.protein.grams}g/day), emphasis on low-GI carbs.</span><br>
+            <span class="hint-why"><strong>Why?</strong> PCOS affects 6-12% of women and is strongly linked to insulin resistance, even in lean individuals. Studies show women with PCOS have a resting metabolic rate 40-80 kcal/day lower than weight-matched controls. The insulin resistance drives excess androgen production, worsening symptoms. <em>Nutritional strategy:</em> Low glycemic index carbohydrates (oats, legumes, sweet potatoes) help stabilize blood sugar and reduce insulin spikes. Higher protein increases satiety and supports stable blood sugar. Anti-inflammatory foods (omega-3 rich fish, turmeric, berries) may help reduce chronic low-grade inflammation associated with PCOS. Inositol (found in citrus fruits, beans) has shown promise in improving insulin sensitivity in PCOS.</span>`
         });
     }
 
@@ -812,7 +1049,27 @@ function renderHints() {
             text: `<strong>Menopause - Metabolic changes & your plan:</strong><br>
             <span class="hint-effect">&#10132; BMR reduced by 5% (hormonal metabolic slowdown).</span><br>
             <span class="hint-effect">&#10132; Fat ratio increased to ${m.fats.percent}% (vs. standard 30%).</span><br>
-            <span class="hint-why"><strong>Why?</strong> During menopause, declining estrogen levels cause several metabolic shifts: (1) BMR decreases ~5-10% because estrogen normally supports metabolic rate, (2) the body tends to redistribute fat toward the abdomen, and (3) bone density decreases. The higher fat intake supports hormone production - your body still makes estrogen in smaller amounts via fat tissue and adrenal glands, and dietary fat is the precursor for all steroid hormones. <em>Focus foods:</em> Phytoestrogens (flaxseed, soy) can mildly mimic estrogen. Calcium + Vitamin D are critical for bone health. Strength training is the single most effective intervention against both muscle and bone loss during menopause.</span>`
+            <span class="hint-why"><strong>Why?</strong> During menopause, declining estrogen levels cause several metabolic shifts: (1) BMR decreases ~5-10% because estrogen normally supports metabolic rate, (2) the body tends to redistribute fat toward the abdomen, and (3) bone density decreases. The higher fat intake supports hormone production - your body still makes estrogen in smaller amounts via fat tissue and adrenal glands, and dietary fat is the precursor for all steroid hormones. <em>Focus foods:</em> Phytoestrogens (flaxseed, soy) can mildly mimic estrogen. Calcium (1200 mg/day) + Vitamin D are critical for bone health. Strength training is the single most effective intervention against both muscle and bone loss during menopause.</span>`
+        });
+    }
+
+    if (p.umstaende.includes('hypothyroid')) {
+        hints.push({
+            icon: '&#129516;',
+            text: `<strong>Hypothyroidism - Slowed metabolism:</strong><br>
+            <span class="hint-effect">&#10132; Your BMR has been reduced by 10% (from ${Math.round(state.results.bmr / 0.90)} to ${state.results.bmr} kcal).</span><br>
+            <span class="hint-effect">&#10132; Meal plan includes iodine and selenium-rich foods when available.</span><br>
+            <span class="hint-why"><strong>Why?</strong> Hypothyroidism means your thyroid produces insufficient T3 and T4 hormones, which directly regulate metabolic rate. This can reduce BMR by 10-15%, even with medication. <em>Key nutrients:</em> Iodine is the raw material for thyroid hormones (found in fish, seaweed, dairy). Selenium is needed by the enzyme that converts T4 into the active T3 form (Brazil nuts - just 1-2 per day). Zinc also supports thyroid function (pumpkin seeds, legumes). <em>Note:</em> If you take levothyroxine, take it on an empty stomach 30-60 min before eating, and avoid calcium/iron supplements within 4 hours as they impair absorption.</span>`
+        });
+    }
+
+    if (p.umstaende.includes('hyperthyroid')) {
+        hints.push({
+            icon: '&#128293;',
+            text: `<strong>Hyperthyroidism - Elevated metabolism:</strong><br>
+            <span class="hint-effect">&#10132; Your BMR has been increased by 15% (from ${Math.round(state.results.bmr / 1.15)} to ${state.results.bmr} kcal).</span><br>
+            <span class="hint-effect">&#10132; Higher calorie and protein targets to prevent muscle wasting.</span><br>
+            <span class="hint-why"><strong>Why?</strong> An overactive thyroid floods your body with T3/T4 hormones, accelerating metabolism by 10-30%. This causes rapid weight loss, muscle breakdown, and bone density loss if not managed. <em>Nutritional strategy:</em> Higher calorie intake prevents unintended weight loss. Extra protein (1.5-2g/kg) helps counteract muscle catabolism. Calcium and Vitamin D are crucial as hyperthyroidism accelerates bone turnover. <em>Important:</em> Avoid excess iodine (seaweed, kelp supplements) as it can worsen the condition. Cruciferous vegetables (broccoli, cauliflower) have mild anti-thyroid properties and are generally beneficial. Work closely with your endocrinologist.</span>`
         });
     }
 
@@ -826,6 +1083,16 @@ function renderHints() {
         });
     }
 
+    if (p.umstaende.includes('anemia')) {
+        hints.push({
+            icon: '&#129656;',
+            text: `<strong>Anemia / Iron Deficiency - Nutritional priorities:</strong><br>
+            <span class="hint-effect">&#10132; Focus on iron-rich foods paired with vitamin C for absorption.</span><br>
+            <span class="hint-effect">&#10132; Avoid calcium, tea, and coffee with iron-rich meals.</span><br>
+            <span class="hint-why"><strong>Why?</strong> Iron deficiency is the most common nutritional deficiency worldwide, affecting ~30% of women of reproductive age. Iron is essential for hemoglobin, which carries oxygen to your cells. Without sufficient iron, your body can't produce enough healthy red blood cells, causing fatigue, weakness, and reduced exercise capacity. <em>Two types of dietary iron:</em> Heme iron (red meat, organ meats, shellfish) is absorbed 2-3x better than non-heme iron (spinach, lentils, fortified cereals). Vitamin C (citrus, bell peppers) dramatically boosts non-heme iron absorption. Tannins in tea/coffee and calcium in dairy compete with iron absorption - separate them from iron-rich meals by 1-2 hours. Folate and B12 are also important for red blood cell production.</span>`
+        });
+    }
+
     if (p.umstaende.includes('digestion')) {
         hints.push({
             icon: '&#129756;',
@@ -836,6 +1103,16 @@ function renderHints() {
         });
     }
 
+    if (p.umstaende.includes('autoimmune')) {
+        hints.push({
+            icon: '&#129516;',
+            text: `<strong>Autoimmune / Chronic Inflammation - Anti-inflammatory nutrition:</strong><br>
+            <span class="hint-effect">&#10132; TDEE reduced by ~7% (elevated resting metabolism offset by reduced activity).</span><br>
+            <span class="hint-effect">&#10132; Emphasis on omega-3 fatty acids and anti-inflammatory foods.</span><br>
+            <span class="hint-why"><strong>Why?</strong> Autoimmune conditions cause chronic systemic inflammation, where your immune system attacks healthy tissue. While inflammation slightly raises BMR (the body burns energy fighting itself), physical activity often decreases, resulting in a net lower TDEE. <em>Anti-inflammatory nutrition:</em> Omega-3 fatty acids (2-3g/day from fatty fish, flaxseed, walnuts) directly reduce inflammatory markers (IL-6, TNF-alpha). Vitamin D (1000-2000 IU/day) modulates immune function - deficiency is extremely common in autoimmune patients. Antioxidant-rich foods (berries, leafy greens, turmeric) help neutralize oxidative stress. Reducing refined carbohydrates and processed foods can lower systemic inflammation. Some patients benefit from identifying food triggers (common: gluten, dairy) with guidance from their healthcare provider.</span>`
+        });
+    }
+
     if (p.umstaende.includes('stress')) {
         hints.push({
             icon: '&#128164;',
@@ -843,6 +1120,36 @@ function renderHints() {
             <span class="hint-effect">&#10132; BMR reduced by 3% (stress-induced metabolic adaptation).</span><br>
             <span class="hint-effect">&#10132; Focus on magnesium, B-vitamins, and blood-sugar-stabilizing meals.</span><br>
             <span class="hint-why"><strong>Why?</strong> Chronic stress elevates cortisol, your primary stress hormone. Elevated cortisol has several effects: (1) it promotes abdominal fat storage, (2) it increases appetite and cravings for high-calorie foods, (3) it can break down muscle tissue for energy (catabolic), and (4) it can reduce your metabolic rate over time. <em>Nutritional counter-strategy:</em> Magnesium (found in nuts, spinach, dark chocolate) is nature's relaxation mineral - it calms the nervous system and is depleted faster under stress. B-vitamins (whole grains, eggs, legumes) support neurotransmitter production. Regular, balanced meals prevent the blood sugar crashes that trigger additional cortisol release. A structured 3-meal approach with 5h gaps provides stable energy without the stress of constant meal decisions.</span>`
+        });
+    }
+
+    if (p.umstaende.includes('depression')) {
+        hints.push({
+            icon: '&#128546;',
+            text: `<strong>Depression (on medication) - Metabolic & nutritional impact:</strong><br>
+            <span class="hint-effect">&#10132; BMR reduced by 4% (medication-related metabolic adjustment).</span><br>
+            <span class="hint-effect">&#10132; Focus on omega-3, magnesium, and B-vitamins for mood support.</span><br>
+            <span class="hint-why"><strong>Why?</strong> Many antidepressants (SSRIs, SNRIs, atypical antipsychotics) can cause weight gain of 2-10 kg over months through metabolic changes and increased appetite. We adjust your BMR down by 4% to account for this. <em>Nutritional support for mental health:</em> Omega-3 fatty acids (1-2g/day EPA from fatty fish) have evidence for anti-depressant effects. Magnesium (400 mg/day - nuts, dark chocolate, leafy greens) is often depleted and affects mood regulation. B-vitamins (especially B6, B12, folate) are essential for neurotransmitter synthesis (serotonin, dopamine). Tryptophan-rich foods (turkey, eggs, cheese, nuts) provide the precursor for serotonin. Regular meal timing helps stabilize energy and mood throughout the day.</span>`
+        });
+    }
+
+    if (p.umstaende.includes('recovery')) {
+        hints.push({
+            icon: '&#129657;',
+            text: `<strong>Recovery from Surgery / Injury - Healing nutrition:</strong><br>
+            <span class="hint-effect">&#10132; BMR increased by 17% (elevated energy demands for tissue repair).</span><br>
+            <span class="hint-effect">&#10132; Protein raised to ${m.protein.grams}g/day (1.8g/kg) for wound healing.</span><br>
+            <span class="hint-why"><strong>Why?</strong> Your body's metabolic rate increases significantly during recovery - minor surgery adds 10-15%, major surgery or fractures 20-30%. This energy fuels tissue repair, immune function, and inflammation management. <em>Critical healing nutrients:</em> Protein (1.5-2.0 g/kg/day) provides amino acids for rebuilding tissue and collagen. Vitamin C (500-1000 mg/day from citrus, bell peppers, kiwi) is essential for collagen synthesis - without it, wounds simply cannot heal properly. Zinc (15-40 mg/day from pumpkin seeds, beef, lentils) supports immune function and cell division. Iron supports oxygen delivery to healing tissues. Do not restrict calories during recovery - inadequate nutrition significantly delays healing and increases infection risk.</span>`
+        });
+    }
+
+    if (p.umstaende.includes('edrecovery')) {
+        hints.push({
+            icon: '&#128154;',
+            text: `<strong>Eating Disorder Recovery - Safety-first approach:</strong><br>
+            <span class="hint-effect">&#10132; Caloric deficit has been disabled. Your plan will never suggest eating below maintenance.</span><br>
+            <span class="hint-effect">&#10132; Balanced macros with no food group restrictions.</span><br>
+            <span class="hint-why"><strong>Why?</strong> During ED recovery, calorie-counting apps can be triggering and potentially harmful. We've disabled any deficit recommendations as a safety measure. During recovery from restrictive eating, the body often enters a hypermetabolic state where caloric needs can be 50-100% above calculated BMR due to elevated diet-induced thermogenesis - your body is working overtime to repair. <em>Important principles:</em> No food should be labeled as "bad" or restricted. All macronutrients are essential. Gradual caloric increases help prevent refeeding syndrome (monitor phosphorus, magnesium, potassium). This app is a tool, not a treatment - please work closely with a healthcare team (therapist, dietitian, physician) specialized in eating disorders. If calorie tracking feels triggering, it's okay to step away from tracking entirely.</span>`
         });
     }
 
@@ -972,24 +1279,35 @@ function showSection(id) {
 // ==========================================
 function generateMealPlan() {
     const diet = document.querySelector('input[name="ernaehrungsform"]:checked')?.value || 'omnivore';
+    const selectedCuisines = Array.from(document.querySelectorAll('input[name="cuisine"]:checked')).map(el => el.value);
+    if (selectedCuisines.length === 0) selectedCuisines.push('european'); // default fallback
     const mealSplit = (document.querySelector('input[name="mealsplit"]:checked')?.value || '30-40-30').split('-').map(Number);
     const numDays = parseInt(document.getElementById('planDays').value) || 7;
+
+    const matchesCuisine = (food) => {
+        if (!food.cuisine) return true; // backwards compat
+        return food.cuisine.some(c => selectedCuisines.includes(c));
+    };
 
     const selectedFoods = {};
     Object.keys(FOODS).forEach(catKey => {
         if (catKey === 'oele') {
             selectedFoods.oele = Array.from(document.querySelectorAll('input[name="oil"]:checked')).map(el => el.value);
-            if (selectedFoods.oele.length === 0) selectedFoods.oele = Object.keys(FOODS.oele.items);
+            if (selectedFoods.oele.length === 0) {
+                selectedFoods.oele = Object.entries(FOODS.oele.items)
+                    .filter(([, food]) => food.tags.includes(diet) && matchesCuisine(food))
+                    .map(([name]) => name);
+            }
             return;
         }
         const checked = Array.from(document.querySelectorAll(`input[name="food_${catKey}"]:checked`)).map(el => el.value);
         const filtered = checked.filter(name => {
             const food = FOODS[catKey]?.items[name];
-            return food && food.tags.includes(diet);
+            return food && food.tags.includes(diet) && matchesCuisine(food);
         });
         if (filtered.length === 0) {
             selectedFoods[catKey] = Object.entries(FOODS[catKey].items)
-                .filter(([, food]) => food.tags.includes(diet))
+                .filter(([, food]) => food.tags.includes(diet) && matchesCuisine(food))
                 .map(([name]) => name);
         } else {
             selectedFoods[catKey] = filtered;
@@ -1081,6 +1399,9 @@ function buildMeal(mealIndex, targets, selectedFoods, daySeed, isBreakfast, used
     let remainC = targets.carbs;
     let remainF = targets.fat;
 
+    // Target protein-to-fat ratio determines how lean we need protein sources
+    const targetPFRatio = targets.protein / Math.max(targets.fat, 1);
+
     const pick = (arr, offset = 0, filterFn = null) => {
         let filtered = filterFn ? arr.filter(filterFn) : arr;
         if (filtered.length === 0) filtered = arr;
@@ -1088,9 +1409,57 @@ function buildMeal(mealIndex, targets, selectedFoods, daySeed, isBreakfast, used
         return filtered[(daySeed * 7 + mealIndex * 3 + offset) % filtered.length];
     };
 
+    // Macro-aware protein selection: rank by compatibility with targets
+    // Per-meal protein need determines minimum protein density required
+    const mealProteinNeed = targets.protein; // protein needed for THIS meal
+    const pickProtein = (arr, filterFn) => {
+        let candidates = filterFn ? arr.filter(filterFn) : arr;
+        if (candidates.length === 0) candidates = arr;
+        if (candidates.length === 0) return null;
+
+        // Score each candidate by: P:F ratio (lean preference) + protein density
+        const scored = candidates.map(name => {
+            const food = findFood(name);
+            if (!food) return { name, score: -Infinity };
+            const foodPFRatio = food.protein / Math.max(food.fat, 0.1);
+            const proteinDensity = food.protein; // g protein per 100g
+
+            let score = 0;
+            if (targetPFRatio > 2) {
+                // Need lean protein: P:F ratio is critical, then density
+                score = foodPFRatio * 3 + proteinDensity;
+            } else {
+                score = -Math.abs(foodPFRatio - targetPFRatio) + proteinDensity * 0.3;
+            }
+            return { name, score, food };
+        });
+
+        scored.sort((a, b) => b.score - a.score);
+
+        // Filter: must have acceptable P:F ratio AND enough protein density
+        let qualified = scored;
+        if (targetPFRatio > 2) {
+            // Breakfast gets relaxed thresholds: dairy/eggs have lower density but are appropriate
+            const pfMultiplier = isBreakfast ? 0.25 : 0.4;
+            const minAcceptablePF = targetPFRatio * pfMultiplier;
+            // Breakfast: accept lower density (eggs, quark); lunch/dinner need higher density
+            const minDensity = isBreakfast ? 8 : Math.max(mealProteinNeed / 3.5, 8);
+            const filtered = scored.filter(s => {
+                if (!s.food) return false;
+                const pf = s.food.protein / Math.max(s.food.fat, 0.1);
+                return pf >= minAcceptablePF && s.food.protein >= minDensity;
+            });
+            if (filtered.length > 0) qualified = filtered;
+        }
+
+        const poolSize = targetPFRatio > 3 ? Math.min(4, qualified.length) : Math.min(6, qualified.length);
+        const idx = (daySeed * 7 + mealIndex * 3) % poolSize;
+        return qualified[idx].name;
+    };
+
     // 1) PROTEIN SOURCE
     const protSources = selectedFoods.proteinquellen || [];
-    const protName = pick(protSources, 0, (name) => {
+    const protName = pickProtein(protSources, (name) => {
         const food = findFood(name);
         if (!food) return false;
         if (isBreakfast && !food.breakfast) return false;
@@ -1104,7 +1473,7 @@ function buildMeal(mealIndex, targets, selectedFoods, daySeed, isBreakfast, used
         if (food) {
             const targetPGrams = Math.max(remainP * 0.9, 12);
             let grams = Math.round((targetPGrams / Math.max(food.protein, 1)) * 100);
-            const maxGrams = isBreakfast ? 200 : 250;
+            const maxGrams = isBreakfast ? 250 : 300;
             grams = Math.min(Math.max(grams, 40), maxGrams);
             items.push(makeItem(protName, grams, food));
             remainP -= (food.protein * grams / 100);
@@ -1122,18 +1491,25 @@ function buildMeal(mealIndex, targets, selectedFoods, daySeed, isBreakfast, used
         return true;
     });
 
-    if (carbName && remainC > 8) {
+    // Only add a dedicated carb source if the carb budget has room for a realistic portion
+    // Estimate incidental carbs from veggies, fruit, protein (~15-20g per meal)
+    const incidentalCarbs = isBreakfast ? 12 : 18;
+    const carbBudgetForSource = remainC - incidentalCarbs;
+
+    if (carbName && carbBudgetForSource > 8) {
         const food = findFood(carbName);
         if (food) {
-            const targetCGrams = Math.max(remainC * 0.65, 10);
+            const targetCGrams = Math.max(carbBudgetForSource * 0.85, 10);
             let grams = Math.round((targetCGrams / Math.max(food.carbs, 1)) * 100);
-            const isBread = food.kcal > 200 && food.fiber > 5;
-            const maxG = isBread ? 80 : (isBreakfast ? 60 : 200);
-            grams = Math.min(Math.max(grams, 20), maxG);
-            items.push(makeItem(carbName, grams, food));
-            remainP -= (food.protein * grams / 100);
-            remainC -= (food.carbs * grams / 100);
-            remainF -= (food.fat * grams / 100);
+            const minRealistic = getRealisticMinGrams(carbName, food);
+            // Only add if we can afford a realistic portion
+            if (grams >= minRealistic) {
+                grams = Math.min(grams, 250);
+                items.push(makeItem(carbName, grams, food));
+                remainP -= (food.protein * grams / 100);
+                remainC -= (food.carbs * grams / 100);
+                remainF -= (food.fat * grams / 100);
+            }
         }
     }
 
@@ -1230,18 +1606,151 @@ function buildMeal(mealIndex, targets, selectedFoods, daySeed, isBreakfast, used
         }
     }
 
-    // 6) OIL/FAT
+    // 6) OIL/FAT — only if substantial fat budget remains
     const oilSources = selectedFoods.oele || [];
     const oilName = pick(oilSources, 5);
-    if (oilName && remainF > 2) {
+    if (oilName && remainF > 5) {
         const food = findFood(oilName);
         if (food) {
-            const grams = Math.min(Math.max(Math.round((Math.max(remainF, 0) / Math.max(food.fat, 1)) * 100), 3), 15);
+            const grams = Math.min(Math.max(Math.round((Math.max(remainF * 0.6, 0) / Math.max(food.fat, 1)) * 100), 3), 15);
             items.push(makeItem(oilName, grams, food));
         }
     }
 
+    // === CALIBRATION: scale portions to hit calorie & macro targets ===
+    calibrateMeal(items, targets, targetPFRatio);
+
     return items;
+}
+
+// Realistic minimum portions - below these, drop the item entirely
+function getRealisticMinGrams(name, food) {
+    if (!food) return 10;
+    // Oils: realistic drizzle
+    if (food.fat > 60) return 5;
+    // Seeds/nuts (high fat, used as toppings): small amount is fine
+    if (food.fat > 15 && food.kcal > 400) return 10;
+    // Bread/grain products: at least one small slice
+    if (food.carbs > 30 && food.fiber > 3 && food.kcal > 200) return 30;
+    // Rice/pasta (dry weight): at least a small portion
+    if (food.carbs > 60 && food.kcal > 300) return 30;
+    // Main protein sources (lean, dominant protein): at least a meaningful portion
+    if (food.protein > 15 && food.protein > food.fat * 2) return 80;
+    // Fattier protein sources (cheese, eggs): smaller portions ok
+    if (food.protein > 10) return 40;
+    // Fruits: at least a few bites
+    if (food.carbs > 10 && food.fiber > 1 && food.kcal < 100) return 50;
+    return 10;
+}
+
+function calibrateMeal(items, targets, targetPFRatio) {
+    if (items.length === 0) return;
+
+    // Build per-item data: food macros per gram and scalability
+    const itemData = items.map((item, i) => {
+        const food = findFood(item.name);
+        if (!food) return null;
+        const isLowCal = food.kcal < 50; // veggies, salads
+        const realisticMin = getRealisticMinGrams(item.name, food);
+        return {
+            idx: i,
+            food,
+            perGram: {
+                protein: food.protein / 100,
+                carbs: food.carbs / 100,
+                fat: food.fat / 100,
+                kcal: food.kcal / 100,
+            },
+            scalable: !isLowCal,
+            minGrams: isLowCal ? item.grams : realisticMin,
+            maxGrams: isLowCal ? item.grams : 500,
+            realisticMin,
+        };
+    });
+
+    // Gradient descent: adjust each item's grams to minimize macro errors
+    // Use working grams array (floats) for precision, round at the end
+    const grams = items.map(it => it.grams);
+
+    const lr = 0.3; // learning rate
+    for (let iter = 0; iter < 50; iter++) {
+        // Calculate current totals
+        let totP = 0, totC = 0, totF = 0, totK = 0;
+        for (let i = 0; i < items.length; i++) {
+            const d = itemData[i];
+            if (!d) continue;
+            totP += d.perGram.protein * grams[i];
+            totC += d.perGram.carbs * grams[i];
+            totF += d.perGram.fat * grams[i];
+            totK += d.perGram.kcal * grams[i];
+        }
+
+        // Errors (positive = need more, negative = need less)
+        const errP = targets.protein - totP;
+        const errC = targets.carbs - totC;
+        const errF = targets.fat - totF;
+        const errK = targets.kcal - totK;
+
+        // Check convergence: within 5% on all macros
+        if (Math.abs(errP) < targets.protein * 0.05 &&
+            Math.abs(errC) < Math.max(targets.carbs * 0.05, 3) &&
+            Math.abs(errF) < targets.fat * 0.05 &&
+            Math.abs(errK) < targets.kcal * 0.05) {
+            break;
+        }
+
+        // For each scalable item, compute gradient of squared error
+        for (let i = 0; i < items.length; i++) {
+            const d = itemData[i];
+            if (!d || !d.scalable) continue;
+
+            // Gradient: how much does increasing this item's grams reduce total error?
+            // Weight fat errors more heavily when P:F target is high (lean diet)
+            const fatWeight = targetPFRatio > 2 ? 2.0 : 1.0;
+            const gradient = (
+                errP * d.perGram.protein +
+                errC * d.perGram.carbs +
+                errF * d.perGram.fat * fatWeight +
+                errK * d.perGram.kcal * 0.01
+            );
+
+            // Normalize by the item's macro density to prevent high-cal items from dominating
+            const norm = (
+                d.perGram.protein * d.perGram.protein +
+                d.perGram.carbs * d.perGram.carbs +
+                d.perGram.fat * d.perGram.fat +
+                0.001
+            );
+
+            const delta = lr * gradient / norm;
+            grams[i] = Math.max(d.minGrams, Math.min(d.maxGrams, grams[i] + delta));
+        }
+    }
+
+    // Round to nearest 5g and rebuild items
+    for (let i = 0; i < items.length; i++) {
+        const d = itemData[i];
+        if (!d) continue;
+        let rounded = Math.round(grams[i] / 5) * 5;
+        rounded = Math.max(rounded, d.minGrams);
+        items[i] = makeItem(items[i].name, rounded, d.food);
+    }
+
+    // Remove items that the solver pushed to their minimum but don't fit the plan
+    let removed = false;
+    for (let i = items.length - 1; i >= 0; i--) {
+        const d = itemData[i];
+        if (!d || !d.scalable) continue;
+        if (grams[i] < d.realisticMin * 0.7) {
+            items.splice(i, 1);
+            removed = true;
+        }
+    }
+
+    // If items were removed, re-run the solver on remaining items
+    if (removed && items.length > 0) {
+        calibrateMeal(items, targets, targetPFRatio);
+    }
 }
 
 function findFood(name) {
