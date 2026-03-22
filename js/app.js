@@ -415,8 +415,26 @@ const RECIPES = {
     ]
 };
 
+function getMealType(mealIndex) {
+    const numMeals = (state.preferences && state.preferences.numMeals) || 3;
+    const typeMap = {
+        3: ['breakfast', 'lunch', 'dinner'],
+        4: ['breakfast', 'lunch', 'snack', 'dinner'],
+        5: ['breakfast', 'snack', 'lunch', 'snack', 'dinner'],
+        6: ['breakfast', 'snack', 'lunch', 'snack', 'dinner', 'snack'],
+    };
+    const types = typeMap[numMeals] || typeMap[3];
+    return types[mealIndex] || 'lunch';
+}
+
 function getRecipeName(mealIndex, items) {
-    const mealType = mealIndex === 0 ? 'breakfast' : mealIndex === 1 ? 'lunch' : 'dinner';
+    const mealType = getMealType(mealIndex);
+
+    // Snacks don't have recipes - return a simple fallback
+    if (mealType === 'snack') {
+        return { name: 'Balanced Snack', tip: 'A protein-rich snack keeps you satisfied until your next meal.' };
+    }
+
     const recipes = RECIPES[mealType];
     const itemNames = items.map(i => i.name.toLowerCase());
     const nameStr = itemNames.join(' ');
@@ -458,6 +476,9 @@ function saveToStorage() {
 
     const planDays = document.getElementById('planDays');
     if (planDays) data.planDays = planDays.value;
+
+    const mealsPerDay = document.getElementById('mealsPerDay');
+    if (mealsPerDay) data.mealsPerDay = mealsPerDay.value;
 
     ['geschlecht', 'ernaehrungsform', 'mealsplit'].forEach(name => {
         const checked = document.querySelector(`input[name="${name}"]:checked`);
@@ -503,6 +524,12 @@ function loadFromStorage() {
     if (planDays && data.planDays) {
         planDays.value = data.planDays;
         document.getElementById('planDaysValue').textContent = data.planDays + ' days';
+    }
+
+    const mealsPerDay = document.getElementById('mealsPerDay');
+    if (mealsPerDay && data.mealsPerDay) {
+        mealsPerDay.value = data.mealsPerDay;
+        updateMealSplitOptions(); // rebuild split options for saved meal count
     }
 
     ['geschlecht', 'ernaehrungsform', 'mealsplit'].forEach(name => {
@@ -705,7 +732,7 @@ function initFoodSelection() {
             Object.keys(category.items).forEach(name => {
                 const label = document.createElement('label');
                 label.className = 'checkbox-card';
-                label.innerHTML = `<input type="checkbox" name="oil" value="${name}" checked><span>${name}</span>`;
+                label.innerHTML = `<input type="checkbox" name="oil" value="${name}"><span>${name}</span>`;
                 oilContainer.appendChild(label);
             });
             return;
@@ -735,6 +762,82 @@ function initFoodSelection() {
 
 function initDayTabs() {
     // Will be dynamically created when meal plan is generated
+}
+
+function updateMealSplitOptions() {
+    const numMeals = parseInt(document.getElementById('mealsPerDay').value) || 3;
+    const container = document.getElementById('mealSplitSelector');
+
+    const splitOptions = {
+        3: [
+            { value: '30-40-30', label: '30 / 40 / 30', desc: 'Breakfast / Lunch / Dinner' },
+            { value: '25-45-30', label: '25 / 45 / 30', desc: 'Light Breakfast' },
+            { value: '35-35-30', label: '35 / 35 / 30', desc: 'Evenly Distributed' },
+        ],
+        4: [
+            { value: '25-35-15-25', label: '25 / 35 / 15 / 25', desc: 'Breakfast / Lunch / Snack / Dinner' },
+            { value: '20-35-15-30', label: '20 / 35 / 15 / 30', desc: 'Light Breakfast, Bigger Dinner' },
+            { value: '25-30-20-25', label: '25 / 30 / 20 / 25', desc: 'Evenly Distributed' },
+        ],
+        5: [
+            { value: '25-10-30-10-25', label: '25 / 10 / 30 / 10 / 25', desc: 'BF / Snack / Lunch / Snack / Dinner' },
+            { value: '20-10-30-15-25', label: '20 / 10 / 30 / 15 / 25', desc: 'Light Breakfast' },
+            { value: '20-15-25-15-25', label: '20 / 15 / 25 / 15 / 25', desc: 'Evenly Distributed' },
+        ],
+        6: [
+            { value: '20-10-25-10-25-10', label: '20 / 10 / 25 / 10 / 25 / 10', desc: 'Main meals + 3 snacks' },
+            { value: '17-17-17-17-16-16', label: '17 / 17 / 17 / 17 / 16 / 16', desc: 'Evenly Distributed' },
+            { value: '20-10-25-15-20-10', label: '20 / 10 / 25 / 15 / 20 / 10', desc: 'Bigger Lunch' },
+        ],
+    };
+
+    const options = splitOptions[numMeals] || splitOptions[3];
+    container.innerHTML = options.map((opt, i) => `
+        <label class="radio-card">
+            <input type="radio" name="mealsplit" value="${opt.value}" ${i === 0 ? 'checked' : ''}>
+            <span class="radio-label">${opt.label}<br><small>${opt.desc}</small></span>
+        </label>
+    `).join('');
+
+    // Update nutrition rules based on meal count
+    updateNutritionRules(numMeals);
+}
+
+function updateNutritionRules(numMeals) {
+    const mealsContent = document.getElementById('ruleMealsContent');
+    const gapContent = document.getElementById('ruleMealGapContent');
+
+    if (numMeals === 3) {
+        mealsContent.innerHTML = `
+            <h4>Only 3 Meals Per Day</h4>
+            <p>Eat exactly three meals per day. No snacking between meals. Research shows this allows insulin levels to drop between meals, promoting fat oxidation and improving insulin sensitivity over time.</p>
+        `;
+        gapContent.innerHTML = `
+            <h4>5-Hour Gap Between Meals</h4>
+            <p>Leave at least 5 hours between each meal. This activates the migrating motor complex (MMC) - your gut's natural cleansing wave - and ensures full digestion before the next meal.</p>
+        `;
+        document.getElementById('ruleMealGap').style.display = '';
+    } else if (numMeals === 4) {
+        mealsContent.innerHTML = `
+            <h4>${numMeals} Meals Per Day</h4>
+            <p>Eat four meals per day: 3 main meals plus 1 snack. Keep snacks protein-rich and moderate in size to maintain stable blood sugar levels without over-stimulating insulin.</p>
+        `;
+        gapContent.innerHTML = `
+            <h4>3-4 Hour Gap Between Meals</h4>
+            <p>With 4 meals per day, aim for 3-4 hours between meals. This keeps your metabolism active while still allowing adequate digestion time between meals.</p>
+        `;
+        document.getElementById('ruleMealGap').style.display = '';
+    } else {
+        mealsContent.innerHTML = `
+            <h4>${numMeals} Meals Per Day</h4>
+            <p>Eat ${numMeals} smaller meals spread throughout the day. This approach keeps blood sugar stable and can help manage hunger, especially at higher calorie targets. Focus on balanced macros at each meal.</p>
+        `;
+        gapContent.innerHTML = `
+            <h4>2-3 Hour Gap Between Meals</h4>
+            <p>With ${numMeals} meals per day, eat every 2-3 hours. Keep portion sizes moderate - the goal is steady energy, not large spikes. Plan your last meal at least 2 hours before sleep.</p>
+        `;
+        document.getElementById('ruleMealGap').style.display = '';
+    }
 }
 
 // ==========================================
@@ -1281,6 +1384,7 @@ function generateMealPlan() {
     const diet = document.querySelector('input[name="ernaehrungsform"]:checked')?.value || 'omnivore';
     const selectedCuisines = Array.from(document.querySelectorAll('input[name="cuisine"]:checked')).map(el => el.value);
     if (selectedCuisines.length === 0) selectedCuisines.push('european'); // default fallback
+    const numMeals = parseInt(document.getElementById('mealsPerDay').value) || 3;
     const mealSplit = (document.querySelector('input[name="mealsplit"]:checked')?.value || '30-40-30').split('-').map(Number);
     const numDays = parseInt(document.getElementById('planDays').value) || 7;
 
@@ -1314,7 +1418,7 @@ function generateMealPlan() {
         }
     });
 
-    state.preferences = { diet, mealSplit, selectedFoods };
+    state.preferences = { diet, mealSplit, selectedFoods, numMeals };
 
     const allDayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
                          'Day 8', 'Day 9', 'Day 10', 'Day 11', 'Day 12', 'Day 13', 'Day 14'];
@@ -1350,8 +1454,9 @@ function generateMealPlan() {
 
     const p = state.profile;
     const daysText = numDays === 1 ? '1 day' : numDays + ' days';
+    const mealsText = numMeals + ' meals/day';
     document.getElementById('mealplanSubtitle').textContent =
-        `For ${p.name} | ${state.results.targetKcal} kcal/day | ${state.macros.protein.grams}g P / ${state.macros.carbs.grams}g C / ${state.macros.fats.grams}g F | ${daysText}`;
+        `For ${p.name} | ${state.results.targetKcal} kcal/day | ${state.macros.protein.grams}g P / ${state.macros.carbs.grams}g C / ${state.macros.fats.grams}g F | ${mealsText} | ${daysText}`;
 
     renderDayPlan(0);
     state.currentDay = 0;
@@ -1366,12 +1471,19 @@ function generateDayPlan(mealSplit, selectedFoods, daySeed) {
     const targetCarbs = state.macros.carbs.grams;
     const targetFat = state.macros.fats.grams;
 
-    const mealNames = ['Breakfast', 'Lunch', 'Dinner'];
+    const numMeals = state.preferences.numMeals || 3;
+    const mealNamesByCount = {
+        3: ['Breakfast', 'Lunch', 'Dinner'],
+        4: ['Breakfast', 'Lunch', 'Snack', 'Dinner'],
+        5: ['Breakfast', 'Snack 1', 'Lunch', 'Snack 2', 'Dinner'],
+        6: ['Breakfast', 'Snack 1', 'Lunch', 'Snack 2', 'Dinner', 'Snack 3'],
+    };
+    const mealNames = mealNamesByCount[numMeals] || mealNamesByCount[3];
     const meals = [];
 
     const usedProteins = new Set();
 
-    for (let m = 0; m < 3; m++) {
+    for (let m = 0; m < numMeals; m++) {
         const fraction = mealSplit[m] / 100;
         const mealTargets = {
             kcal: Math.round(targetKcal * fraction),
@@ -1389,6 +1501,9 @@ function generateDayPlan(mealSplit, selectedFoods, daySeed) {
             items: mealItems
         });
     }
+
+    // Day-level calibration: fix remaining macro errors across all meals
+    calibrateDay(meals, { protein: targetProtein, carbs: targetCarbs, fat: targetFat, kcal: targetKcal });
 
     return meals;
 }
@@ -1409,52 +1524,43 @@ function buildMeal(mealIndex, targets, selectedFoods, daySeed, isBreakfast, used
         return filtered[(daySeed * 7 + mealIndex * 3 + offset) % filtered.length];
     };
 
-    // Macro-aware protein selection: rank by compatibility with targets
-    // Per-meal protein need determines minimum protein density required
-    const mealProteinNeed = targets.protein; // protein needed for THIS meal
+    // Macro-aware protein selection: simulate each candidate to find best fit
     const pickProtein = (arr, filterFn) => {
         let candidates = filterFn ? arr.filter(filterFn) : arr;
         if (candidates.length === 0) candidates = arr;
         if (candidates.length === 0) return null;
 
-        // Score each candidate by: P:F ratio (lean preference) + protein density
+        // For each candidate, simulate: how many grams to hit protein target,
+        // and how much fat does that produce vs the fat budget?
         const scored = candidates.map(name => {
             const food = findFood(name);
             if (!food) return { name, score: -Infinity };
-            const foodPFRatio = food.protein / Math.max(food.fat, 0.1);
-            const proteinDensity = food.protein; // g protein per 100g
 
-            let score = 0;
-            if (targetPFRatio > 2) {
-                // Need lean protein: P:F ratio is critical, then density
-                score = foodPFRatio * 3 + proteinDensity;
-            } else {
-                score = -Math.abs(foodPFRatio - targetPFRatio) + proteinDensity * 0.3;
-            }
-            return { name, score, food };
+            // Grams needed to cover ~85% of meal protein target
+            const gramsForProtein = (targets.protein * 0.85) / Math.max(food.protein / 100, 0.01);
+            // Cap by fat: don't use more than 80% of fat budget
+            const gramsForFat = food.fat > 0.5 ? (targets.fat * 0.8) / (food.fat / 100) : 999;
+            const grams = Math.min(gramsForProtein, gramsForFat, isBreakfast ? 250 : 300);
+            const actualGrams = Math.max(grams, 40);
+
+            // What macros would this deliver?
+            const deliveredP = food.protein * actualGrams / 100;
+            const deliveredF = food.fat * actualGrams / 100;
+
+            // Score: protein delivery (higher=better) minus fat overshoot penalty
+            const proteinScore = deliveredP / Math.max(targets.protein, 1); // 0-1, how much of target met
+            const fatPenalty = Math.max(0, deliveredF - targets.fat) / Math.max(targets.fat, 1); // overshoot ratio
+            const score = proteinScore * 100 - fatPenalty * 200;
+
+            return { name, score, food, optimalGrams: actualGrams };
         });
 
         scored.sort((a, b) => b.score - a.score);
 
-        // Filter: must have acceptable P:F ratio AND enough protein density
-        let qualified = scored;
-        if (targetPFRatio > 2) {
-            // Breakfast gets relaxed thresholds: dairy/eggs have lower density but are appropriate
-            const pfMultiplier = isBreakfast ? 0.25 : 0.4;
-            const minAcceptablePF = targetPFRatio * pfMultiplier;
-            // Breakfast: accept lower density (eggs, quark); lunch/dinner need higher density
-            const minDensity = isBreakfast ? 8 : Math.max(mealProteinNeed / 3.5, 8);
-            const filtered = scored.filter(s => {
-                if (!s.food) return false;
-                const pf = s.food.protein / Math.max(s.food.fat, 0.1);
-                return pf >= minAcceptablePF && s.food.protein >= minDensity;
-            });
-            if (filtered.length > 0) qualified = filtered;
-        }
-
-        const poolSize = targetPFRatio > 3 ? Math.min(4, qualified.length) : Math.min(6, qualified.length);
+        // Pick from top candidates with rotation for variety
+        const poolSize = Math.min(targetPFRatio > 3 ? 3 : 5, scored.length);
         const idx = (daySeed * 7 + mealIndex * 3) % poolSize;
-        return qualified[idx].name;
+        return scored[idx].name;
     };
 
     // 1) PROTEIN SOURCE
@@ -1471,10 +1577,14 @@ function buildMeal(mealIndex, targets, selectedFoods, daySeed, isBreakfast, used
         usedProteins.add(protName);
         const food = findFood(protName);
         if (food) {
-            const targetPGrams = Math.max(remainP * 0.9, 12);
-            let grams = Math.round((targetPGrams / Math.max(food.protein, 1)) * 100);
+            // Calculate optimal grams: hit protein target but respect fat budget
+            const gramsForProtein = Math.round((targets.protein * 0.85 / Math.max(food.protein / 100, 0.01)));
+            const gramsForFat = food.fat > 0.5
+                ? Math.round((remainF * 0.8) / (food.fat / 100))
+                : 999;
             const maxGrams = isBreakfast ? 250 : 300;
-            grams = Math.min(Math.max(grams, 40), maxGrams);
+            let grams = Math.min(gramsForProtein, gramsForFat, maxGrams);
+            grams = Math.max(grams, 40);
             items.push(makeItem(protName, grams, food));
             remainP -= (food.protein * grams / 100);
             remainC -= (food.carbs * grams / 100);
@@ -1606,19 +1716,27 @@ function buildMeal(mealIndex, targets, selectedFoods, daySeed, isBreakfast, used
         }
     }
 
-    // 6) OIL/FAT — only if substantial fat budget remains
+    // 6) OIL/FAT — only if meaningful fat budget remains (at least 8g)
     const oilSources = selectedFoods.oele || [];
     const oilName = pick(oilSources, 5);
-    if (oilName && remainF > 5) {
+    if (oilName && remainF > 8) {
         const food = findFood(oilName);
         if (food) {
-            const grams = Math.min(Math.max(Math.round((Math.max(remainF * 0.6, 0) / Math.max(food.fat, 1)) * 100), 3), 15);
+            // Use at most 70% of remaining fat budget for oil, capped at 15g
+            const grams = Math.min(Math.max(Math.round((remainF * 0.7 / Math.max(food.fat, 1)) * 100), 3), 15);
             items.push(makeItem(oilName, grams, food));
+        }
+    } else if (oilName && remainF > 3) {
+        // Very tight fat budget: tiny drizzle of 5g max
+        const food = findFood(oilName);
+        if (food) {
+            const grams = Math.min(Math.round((remainF * 0.5 / Math.max(food.fat, 1)) * 100), 5);
+            if (grams >= 3) items.push(makeItem(oilName, grams, food));
         }
     }
 
     // === CALIBRATION: scale portions to hit calorie & macro targets ===
-    calibrateMeal(items, targets, targetPFRatio);
+    calibrateMeal(items, targets);
 
     return items;
 }
@@ -1643,113 +1761,272 @@ function getRealisticMinGrams(name, food) {
     return 10;
 }
 
-function calibrateMeal(items, targets, targetPFRatio) {
+function calibrateMeal(items, targets) {
     if (items.length === 0) return;
 
-    // Build per-item data: food macros per gram and scalability
-    const itemData = items.map((item, i) => {
+    // Classify each item by its dominant macro role
+    const itemInfo = items.map((item, i) => {
         const food = findFood(item.name);
         if (!food) return null;
-        const isLowCal = food.kcal < 50; // veggies, salads
+        const isVeg = food.kcal < 50;
         const realisticMin = getRealisticMinGrams(item.name, food);
+        // Determine role: what macro does this item primarily contribute?
+        let role = 'other';
+        if (food.fat > 60) role = 'fat';           // oils, butter
+        else if (food.protein > 12 && food.protein >= food.carbs) role = 'protein';
+        else if (food.carbs > 15 && food.carbs > food.protein) role = 'carb';
+
+        // Realistic max portions by food type
+        let maxG = 300;
+        if (isVeg) maxG = item.grams;              // fixed
+        else if (food.fat > 60) maxG = 20;         // oils: max 20g
+        else if (food.fat > 15 && food.kcal > 400) maxG = 30; // seeds/nuts
+        else if (role === 'protein' && food.protein < 15) maxG = 350; // dairy (lower density)
+        else if (role === 'protein') maxG = 300;   // meat/fish
+        else if (role === 'carb') maxG = 250;      // carb sources
+
         return {
-            idx: i,
-            food,
-            perGram: {
-                protein: food.protein / 100,
-                carbs: food.carbs / 100,
-                fat: food.fat / 100,
-                kcal: food.kcal / 100,
-            },
-            scalable: !isLowCal,
-            minGrams: isLowCal ? item.grams : realisticMin,
-            maxGrams: isLowCal ? item.grams : 500,
-            realisticMin,
+            idx: i, food, role, isVeg,
+            pPer100: food.protein, cPer100: food.carbs, fPer100: food.fat,
+            minG: isVeg ? item.grams : realisticMin,
+            maxG,
+            scalable: !isVeg,
         };
     });
 
-    // Gradient descent: adjust each item's grams to minimize macro errors
-    // Use working grams array (floats) for precision, round at the end
     const grams = items.map(it => it.grams);
 
-    const lr = 0.3; // learning rate
-    for (let iter = 0; iter < 50; iter++) {
+    // Find the primary item for each role
+    const protIdx = itemInfo.findIndex(d => d && d.role === 'protein');
+    const carbIdx = itemInfo.findIndex(d => d && d.role === 'carb');
+    const fatIdx = itemInfo.findIndex(d => d && d.role === 'fat');
+
+    // Direct iterative scaling: 8 passes to converge
+    for (let pass = 0; pass < 8; pass++) {
         // Calculate current totals
-        let totP = 0, totC = 0, totF = 0, totK = 0;
+        let totP = 0, totC = 0, totF = 0;
         for (let i = 0; i < items.length; i++) {
-            const d = itemData[i];
+            const d = itemInfo[i];
             if (!d) continue;
-            totP += d.perGram.protein * grams[i];
-            totC += d.perGram.carbs * grams[i];
-            totF += d.perGram.fat * grams[i];
-            totK += d.perGram.kcal * grams[i];
+            totP += d.pPer100 * grams[i] / 100;
+            totC += d.cPer100 * grams[i] / 100;
+            totF += d.fPer100 * grams[i] / 100;
         }
 
-        // Errors (positive = need more, negative = need less)
         const errP = targets.protein - totP;
         const errC = targets.carbs - totC;
         const errF = targets.fat - totF;
-        const errK = targets.kcal - totK;
 
-        // Check convergence: within 5% on all macros
-        if (Math.abs(errP) < targets.protein * 0.05 &&
-            Math.abs(errC) < Math.max(targets.carbs * 0.05, 3) &&
-            Math.abs(errF) < targets.fat * 0.05 &&
-            Math.abs(errK) < targets.kcal * 0.05) {
-            break;
+        // Converged? (within 2g protein, 3g carbs, 2g fat)
+        if (Math.abs(errP) <= 2 && Math.abs(errC) <= 3 && Math.abs(errF) <= 2) break;
+
+        // Scale protein source to fix protein error
+        if (protIdx >= 0 && itemInfo[protIdx].scalable && Math.abs(errP) > 2) {
+            const d = itemInfo[protIdx];
+            const addGrams = (errP / d.pPer100) * 100;
+            grams[protIdx] = Math.max(d.minG, Math.min(d.maxG, grams[protIdx] + addGrams));
         }
 
-        // For each scalable item, compute gradient of squared error
+        // Recalculate totals after protein adjustment
+        totC = 0; totF = 0; totP = 0;
         for (let i = 0; i < items.length; i++) {
-            const d = itemData[i];
-            if (!d || !d.scalable) continue;
+            const d = itemInfo[i];
+            if (!d) continue;
+            totP += d.pPer100 * grams[i] / 100;
+            totC += d.cPer100 * grams[i] / 100;
+            totF += d.fPer100 * grams[i] / 100;
+        }
 
-            // Gradient: how much does increasing this item's grams reduce total error?
-            // Weight fat errors more heavily when P:F target is high (lean diet)
-            const fatWeight = targetPFRatio > 2 ? 2.0 : 1.0;
-            const gradient = (
-                errP * d.perGram.protein +
-                errC * d.perGram.carbs +
-                errF * d.perGram.fat * fatWeight +
-                errK * d.perGram.kcal * 0.01
-            );
+        // Scale carb source to fix carb error
+        const errC2 = targets.carbs - totC;
+        if (carbIdx >= 0 && itemInfo[carbIdx].scalable && Math.abs(errC2) > 3) {
+            const d = itemInfo[carbIdx];
+            const addGrams = (errC2 / d.cPer100) * 100;
+            grams[carbIdx] = Math.max(d.minG, Math.min(d.maxG, grams[carbIdx] + addGrams));
+        }
 
-            // Normalize by the item's macro density to prevent high-cal items from dominating
-            const norm = (
-                d.perGram.protein * d.perGram.protein +
-                d.perGram.carbs * d.perGram.carbs +
-                d.perGram.fat * d.perGram.fat +
-                0.001
-            );
+        // Recalculate fat total after carb adjustment
+        totF = 0;
+        for (let i = 0; i < items.length; i++) {
+            const d = itemInfo[i];
+            if (!d) continue;
+            totF += d.fPer100 * grams[i] / 100;
+        }
 
-            const delta = lr * gradient / norm;
-            grams[i] = Math.max(d.minGrams, Math.min(d.maxGrams, grams[i] + delta));
+        // Scale fat source to fix fat error
+        const errF2 = targets.fat - totF;
+        if (fatIdx >= 0 && itemInfo[fatIdx].scalable) {
+            const d = itemInfo[fatIdx];
+            const addGrams = (errF2 / d.fPer100) * 100;
+            grams[fatIdx] = Math.max(d.minG, Math.min(d.maxG, grams[fatIdx] + addGrams));
         }
     }
 
-    // Round to nearest 5g and rebuild items
+    // Round to nearest 5g
     for (let i = 0; i < items.length; i++) {
-        const d = itemData[i];
+        const d = itemInfo[i];
         if (!d) continue;
         let rounded = Math.round(grams[i] / 5) * 5;
-        rounded = Math.max(rounded, d.minGrams);
-        items[i] = makeItem(items[i].name, rounded, d.food);
+        grams[i] = Math.max(rounded, d.minG);
     }
 
-    // Remove items that the solver pushed to their minimum but don't fit the plan
+    // Post-rounding: greedy ±5g corrections (up to 20 steps)
+    for (let step = 0; step < 20; step++) {
+        let totP = 0, totC = 0, totF = 0;
+        for (let i = 0; i < items.length; i++) {
+            const d = itemInfo[i];
+            if (!d) continue;
+            totP += d.pPer100 * grams[i] / 100;
+            totC += d.cPer100 * grams[i] / 100;
+            totF += d.fPer100 * grams[i] / 100;
+        }
+
+        const errP = targets.protein - totP;
+        const errC = targets.carbs - totC;
+        const errF = targets.fat - totF;
+
+        if (Math.abs(errP) <= 2 && Math.abs(errC) <= 3 && Math.abs(errF) <= 2) break;
+
+        // Weight: protein and fat errors matter most
+        const currentCost = errP * errP * 9 + errC * errC + errF * errF * 9;
+        let bestCost = currentCost, bestIdx = -1, bestDelta = 0;
+
+        for (let i = 0; i < items.length; i++) {
+            const d = itemInfo[i];
+            if (!d || !d.scalable) continue;
+
+            for (const delta of [5, -5]) {
+                const ng = grams[i] + delta;
+                if (ng < d.minG || ng > d.maxG) continue;
+
+                const nP = errP - d.pPer100 * delta / 100;
+                const nC = errC - d.cPer100 * delta / 100;
+                const nF = errF - d.fPer100 * delta / 100;
+                const cost = nP * nP * 9 + nC * nC + nF * nF * 9;
+
+                if (cost < bestCost - 0.01) {
+                    bestCost = cost;
+                    bestIdx = i;
+                    bestDelta = delta;
+                }
+            }
+        }
+
+        if (bestIdx < 0) break;
+        grams[bestIdx] += bestDelta;
+    }
+
+    // Remove unrealistically small items
     let removed = false;
     for (let i = items.length - 1; i >= 0; i--) {
-        const d = itemData[i];
+        const d = itemInfo[i];
         if (!d || !d.scalable) continue;
-        if (grams[i] < d.realisticMin * 0.7) {
+        if (grams[i] < d.minG * 0.7) {
             items.splice(i, 1);
+            grams.splice(i, 1);
+            itemInfo.splice(i, 1);
             removed = true;
         }
     }
 
-    // If items were removed, re-run the solver on remaining items
+    // Rebuild items with final grams
+    for (let i = 0; i < items.length; i++) {
+        const d = itemInfo[i];
+        if (!d) continue;
+        items[i] = makeItem(items[i].name, grams[i], d.food);
+    }
+
+    // If items were removed, re-run calibration on remaining items
     if (removed && items.length > 0) {
-        calibrateMeal(items, targets, targetPFRatio);
+        calibrateMeal(items, targets);
+    }
+}
+
+function calibrateDay(meals, dayTargets) {
+    // Collect all scalable items across all meals with their food data
+    const allItems = [];
+    meals.forEach((meal, mi) => {
+        meal.items.forEach((item, ii) => {
+            const food = findFood(item.name);
+            if (!food) return;
+            const isVeg = food.kcal < 50;
+            let role = 'other';
+            if (food.fat > 60) role = 'fat';
+            else if (food.protein > 12 && food.protein >= food.carbs) role = 'protein';
+            else if (food.carbs > 15 && food.carbs > food.protein) role = 'carb';
+
+            let maxG = 300;
+            if (isVeg) maxG = item.grams;
+            else if (food.fat > 60) maxG = 20;
+            else if (food.fat > 15 && food.kcal > 400) maxG = 30;
+            else if (role === 'protein' && food.protein < 15) maxG = 350;
+            else if (role === 'carb') maxG = 250;
+
+            allItems.push({
+                mealIdx: mi, itemIdx: ii, food, role,
+                scalable: !isVeg,
+                minG: isVeg ? item.grams : getRealisticMinGrams(item.name, food),
+                maxG,
+                pPer100: food.protein, cPer100: food.carbs, fPer100: food.fat,
+            });
+        });
+    });
+
+    // Working grams array
+    const grams = allItems.map(ai => meals[ai.mealIdx].items[ai.itemIdx].grams);
+
+    // Greedy ±5g corrections across entire day (up to 40 steps)
+    for (let step = 0; step < 40; step++) {
+        let totP = 0, totC = 0, totF = 0;
+        for (let i = 0; i < allItems.length; i++) {
+            const d = allItems[i];
+            totP += d.pPer100 * grams[i] / 100;
+            totC += d.cPer100 * grams[i] / 100;
+            totF += d.fPer100 * grams[i] / 100;
+        }
+
+        const errP = dayTargets.protein - totP;
+        const errC = dayTargets.carbs - totC;
+        const errF = dayTargets.fat - totF;
+
+        // Converged? (within 3g protein, 4g carbs, 3g fat for entire day)
+        if (Math.abs(errP) <= 3 && Math.abs(errC) <= 4 && Math.abs(errF) <= 3) break;
+
+        // Find the single best ±5g adjustment across all items
+        const currentCost = errP * errP * 9 + errC * errC + errF * errF * 9;
+        let bestCost = currentCost, bestIdx = -1, bestDelta = 0;
+
+        for (let i = 0; i < allItems.length; i++) {
+            const d = allItems[i];
+            if (!d.scalable) continue;
+
+            for (const delta of [5, -5]) {
+                const ng = grams[i] + delta;
+                if (ng < d.minG || ng > d.maxG) continue;
+
+                const nP = errP - d.pPer100 * delta / 100;
+                const nC = errC - d.cPer100 * delta / 100;
+                const nF = errF - d.fPer100 * delta / 100;
+                const cost = nP * nP * 9 + nC * nC + nF * nF * 9;
+
+                if (cost < bestCost - 0.1) {
+                    bestCost = cost;
+                    bestIdx = i;
+                    bestDelta = delta;
+                }
+            }
+        }
+
+        if (bestIdx < 0) break;
+        grams[bestIdx] += bestDelta;
+    }
+
+    // Write adjusted grams back to meals
+    for (let i = 0; i < allItems.length; i++) {
+        const ai = allItems[i];
+        const food = ai.food;
+        const g = grams[i];
+        meals[ai.mealIdx].items[ai.itemIdx] = makeItem(meals[ai.mealIdx].items[ai.itemIdx].name, g, food);
     }
 }
 
@@ -1783,12 +2060,13 @@ function renderDayPlan(dayIndex) {
     const planDiv = document.getElementById('dayPlan');
     planDiv.innerHTML = day.meals.map((meal, mi) => {
         const totals = sumItems(meal.items);
-        const mealIcons = ['&#127749;', '&#9728;', '&#127769;'];
+        const mealIconMap = { 'Breakfast': '&#127749;', 'Lunch': '&#9728;', 'Dinner': '&#127769;', 'Snack': '&#127856;', 'Snack 1': '&#127856;', 'Snack 2': '&#127838;', 'Snack 3': '&#127815;' };
+        const mealIcon = mealIconMap[meal.name] || '&#127860;';
         const recipe = getRecipeName(mi, meal.items);
         return `
             <div class="meal-card">
                 <div class="meal-card-header">
-                    <span>${mealIcons[mi]} ${meal.name}</span>
+                    <span>${mealIcon} ${meal.name}</span>
                     <span style="display:flex;align-items:center;gap:0.5rem;">
                         <span class="meal-kcal">${Math.round(totals.kcal)} kcal</span>
                         <button onclick="swapMeal(${dayIndex}, ${mi})" title="Swap this meal"

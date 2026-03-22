@@ -196,15 +196,18 @@
                     <div class="form-card group hover:shadow-xl hover:shadow-primary/5">
                         <h3>&#127939; Activity Level</h3>
                         <div class="form-group">
-                            <label for="aktivitaet">Daily Activity</label>
+                            <label for="aktivitaet">Weekly Exercise Frequency</label>
                             <div class="select-wrapper">
                                 <select id="aktivitaet" required>
                                     <option value="">Please select...</option>
-                                    <option value="1.2">Sedentary (office work, little movement)</option>
-                                    <option value="1.375">Lightly active (1-2x exercise/week)</option>
-                                    <option value="1.55">Moderately active (3-5x exercise/week)</option>
-                                    <option value="1.725">Very active (6-7x exercise/week)</option>
-                                    <option value="1.9">Extremely active (2x daily / physical labor)</option>
+                                    <option value="1.2">0x per week (sedentary / office work)</option>
+                                    <option value="1.275">1x per week</option>
+                                    <option value="1.35">2x per week</option>
+                                    <option value="1.45">3x per week</option>
+                                    <option value="1.55">4x per week</option>
+                                    <option value="1.65">5x per week</option>
+                                    <option value="1.725">6x per week</option>
+                                    <option value="1.8">7x per week (daily training)</option>
                                 </select>
                             </div>
                         </div>
@@ -218,6 +221,10 @@
                                 <label class="checkbox-card">
                                     <input type="checkbox" name="sportart" value="cardio">
                                     <span>&#127939; Cardio / Running</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="sportart" value="hiit">
+                                    <span>&#128293; HIIT</span>
                                 </label>
                                 <label class="checkbox-card">
                                     <input type="checkbox" name="sportart" value="yoga">
@@ -234,6 +241,38 @@
                                 <label class="checkbox-card">
                                     <input type="checkbox" name="sportart" value="hiking">
                                     <span>&#9968; Hiking</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="sportart" value="climbing">
+                                    <span>&#129495; Climbing / Bouldering</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="sportart" value="martial_arts">
+                                    <span>&#129354; Martial Arts / Boxing</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="sportart" value="dancing">
+                                    <span>&#128131; Dancing</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="sportart" value="rowing">
+                                    <span>&#128675; Rowing</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="sportart" value="crossfit">
+                                    <span>&#127947; CrossFit</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="sportart" value="team_sports">
+                                    <span>&#9917; Team Sports</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="sportart" value="tennis">
+                                    <span>&#127934; Tennis / Badminton</span>
+                                </label>
+                                <label class="checkbox-card">
+                                    <input type="checkbox" name="sportart" value="skiing">
+                                    <span>&#9975; Skiing / Snowboarding</span>
                                 </label>
                             </div>
                         </div>
@@ -503,7 +542,7 @@
             </div>
 
             <div class="form-actions">
-                <button class="btn btn-primary btn-lg" onclick="showSection('nutrition-rules')">
+                <button class="btn btn-primary btn-lg" onclick="updateNutritionRules(parseInt(document.getElementById('mealsPerDay')?.value)||3); showSection('nutrition-rules')">
                     View Nutrition Rules &#10132;
                 </button>
             </div>
@@ -520,16 +559,16 @@
             </div>
 
             <div class="nutrition-rules-grid">
-                <div class="nutrition-rule-card">
+                <div class="nutrition-rule-card" id="ruleMetabolism">
                     <div class="nutrition-rule-number">1</div>
-                    <div class="nutrition-rule-content">
+                    <div class="nutrition-rule-content" id="ruleMealsContent">
                         <h4>Only 3 Meals Per Day</h4>
                         <p>Eat exactly three meals per day. No snacking between meals. Research shows this allows insulin levels to drop between meals, promoting fat oxidation and improving insulin sensitivity over time.</p>
                     </div>
                 </div>
-                <div class="nutrition-rule-card">
+                <div class="nutrition-rule-card" id="ruleMealGap">
                     <div class="nutrition-rule-number">2</div>
-                    <div class="nutrition-rule-content">
+                    <div class="nutrition-rule-content" id="ruleMealGapContent">
                         <h4>5-Hour Gap Between Meals</h4>
                         <p>Leave at least 5 hours between each meal. This activates the migrating motor complex (MMC) - your gut's natural cleansing wave - and ensures full digestion before the next meal.</p>
                     </div>
@@ -663,10 +702,26 @@
                     </div>
                 </div>
 
+                <!-- Meals Per Day -->
+                <div class="form-card">
+                    <h3>&#127860; Meals Per Day</h3>
+                    <div class="form-group">
+                        <label for="mealsPerDay">How many meals do you want per day?</label>
+                        <div class="select-wrapper">
+                            <select id="mealsPerDay" onchange="updateMealSplitOptions()">
+                                <option value="3" selected>3 meals (Breakfast, Lunch, Dinner)</option>
+                                <option value="4">4 meals (Breakfast, Lunch, Snack, Dinner)</option>
+                                <option value="5">5 meals (Breakfast, Snack, Lunch, Snack, Dinner)</option>
+                                <option value="6">6 meals (every 2-3 hours)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Meal Split -->
                 <div class="form-card">
                     <h3>&#128338; Meal Calorie Distribution</h3>
-                    <div class="meal-split-selector">
+                    <div class="meal-split-selector" id="mealSplitSelector">
                         <label class="radio-card">
                             <input type="radio" name="mealsplit" value="30-40-30" checked>
                             <span class="radio-label">30 / 40 / 30<br><small>Breakfast / Lunch / Dinner</small></span>
