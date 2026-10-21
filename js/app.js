@@ -490,7 +490,7 @@ const DAY_KEY = 'nourishlab_day';
 function saveToStorage() {
     const data = {};
 
-    ['name', 'alter', 'groesse', 'gewicht', 'zielgewicht', 'koerperfett'].forEach(id => {
+    ['name', 'alter', 'groesse', 'gewicht', 'zielgewicht', 'koerperfett', 'customKcal'].forEach(id => {
         const el = document.getElementById(id);
         if (el) data[id] = el.value;
     });
@@ -533,7 +533,7 @@ function loadFromStorage() {
     } catch (e) { return; }
     if (!data) return;
 
-    ['name', 'alter', 'groesse', 'gewicht', 'zielgewicht', 'koerperfett'].forEach(id => {
+    ['name', 'alter', 'groesse', 'gewicht', 'zielgewicht', 'koerperfett', 'customKcal'].forEach(id => {
         const el = document.getElementById(id);
         if (el && data[id]) el.value = data[id];
     });
@@ -917,6 +917,7 @@ function calculateResults() {
         sportarten: Array.from(document.querySelectorAll('input[name="sportart"]:checked')).map(el => el.value),
         goals: goals,
         weightlossRate: goals.includes('fatloss') ? parseFloat(document.getElementById('weightlossRate').value) : 0,
+        customKcal: parseInt(document.getElementById('customKcal').value) || null,
         umstaende: Array.from(document.querySelectorAll('input[name="umstaende"]:checked')).map(el => el.value),
         allergien: Array.from(document.querySelectorAll('input[name="allergie"]:checked')).map(el => el.value),
     };
@@ -1014,6 +1015,21 @@ function calculateResults() {
         targetDetail = T(`${targetDetail.en} (raised to BMR minimum)`, `${targetDetail.de} (auf Grundumsatz angehoben)`);
     }
 
+    // Own calorie target replaces the calculated one (but never a deficit during ED recovery)
+    const targetWarnings = [];
+    if (profile.customKcal) {
+        const calculatedKcal = targetKcal;
+        if (profile.umstaende.includes('edrecovery') && profile.customKcal < tdee) {
+            targetDetail = T(`Custom target ignored: no deficit during ED recovery (calculated: ${calculatedKcal} kcal)`, `Eigenes Ziel ignoriert: kein Defizit während der Essstörungs-Genesung (berechnet: ${calculatedKcal} kcal)`);
+        } else {
+            targetKcal = profile.customKcal;
+            targetDetail = T(`Custom target (calculated: ${calculatedKcal} kcal)`, `Eigenes Ziel (berechnet: ${calculatedKcal} kcal)`);
+            if (targetKcal < Math.round(bmr)) {
+                targetWarnings.push(T(`Below your BMR (${Math.round(bmr)} kcal). Long-term this can slow your metabolism and cost muscle.`, `Unter deinem Grundumsatz (${Math.round(bmr)} kcal). Auf Dauer kann das den Stoffwechsel bremsen und Muskeln kosten.`));
+            }
+        }
+    }
+
     // === MACRO CALCULATION ===
     let proteinPerKg;
     if (hasMuscle || profile.sportarten.includes('strength')) {
@@ -1043,11 +1059,14 @@ function calculateResults() {
     const carbsKcal = Math.max(targetKcal - proteinKcal - fatKcal, 0);
     const carbsGrams = Math.round(carbsKcal / 4);
     const carbsPercent = Math.round((carbsKcal / targetKcal) * 100);
+    if (carbsPercent < 15) {
+        targetWarnings.push(T(`Protein and fat use up almost the whole target, leaving only ${carbsGrams} g carbs. The meal plan can't hit this precisely.`, `Protein und Fett verbrauchen fast das ganze Ziel, für Kohlenhydrate bleiben nur ${carbsGrams} g. Der Plan kann das nicht genau treffen.`));
+    }
 
     let fiberTarget = 30;
     if (profile.umstaende.includes('digestion')) fiberTarget = 35;
 
-    state.results = { bmi, bmr: Math.round(bmr), tdee, targetKcal, targetDetail };
+    state.results = { bmi, bmr: Math.round(bmr), tdee, targetKcal, targetDetail, targetWarnings };
     state.macros = {
         protein: { grams: proteinGrams, kcal: proteinKcal, percent: proteinPercent },
         carbs: { grams: carbsGrams, kcal: carbsKcal, percent: carbsPercent },
@@ -1081,6 +1100,10 @@ function renderResults() {
     document.getElementById('resultTDEE').textContent = tdee + ' kcal';
     document.getElementById('resultTarget').textContent = targetKcal + ' kcal';
     document.getElementById('resultTargetDetail').textContent = tr(targetDetail);
+    const warningEl = document.getElementById('resultTargetWarning');
+    const warnings = (state.results.targetWarnings || []).map(w => '⚠ ' + tr(w));
+    warningEl.textContent = warnings.join(' ');
+    warningEl.classList.toggle('hidden', warnings.length === 0);
 
     const badgeContainer = document.getElementById('goalBadgeContainer');
     const goalLabels = {
@@ -1835,6 +1858,9 @@ function buildMeal(mealIndex, targets, selectedFoods, daySeed, isBreakfast, used
             const targetCGrams = Math.max(carbBudgetForSource * 0.85, 10);
             let grams = Math.round((targetCGrams / Math.max(food.carbs, 1)) * 100);
             const minRealistic = getRealisticMinGrams(carbName, food);
+            // Low budgets: still use the smallest realistic portion if the meal's carbs allow it,
+            // otherwise the day ends up without any scalable carb source
+            if (grams < minRealistic && food.carbs * minRealistic / 100 <= remainC) grams = minRealistic;
             // Only add if we can afford a realistic portion
             if (grams >= minRealistic) {
                 grams = Math.min(grams, 250);

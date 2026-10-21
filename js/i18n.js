@@ -155,6 +155,8 @@ function initI18n() {
 // DICTIONARIES (English source -> German)
 // ==========================================
 const DE_UI = {
+    "Custom Calorie Target (optional)": "Eigenes Kalorienziel (optional)",
+    "Leave empty to use the calculated target. If set, it replaces the calculated value and your macros adapt automatically.": "Leer lassen, um das berechnete Ziel zu nutzen. Wenn ausgefüllt, ersetzt es den berechneten Wert und deine Makros passen sich automatisch an.",
     "+ Add to Log": "+ Eintragen",
     "0.25 kg": "0,25 kg",
     "0.50 kg/week": "0,50 kg/Woche",
