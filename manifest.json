@@ -1,7 +1,7 @@
 {
     "name": "NourishLab",
     "short_name": "NourishLab",
-    "description": "Your Personal Nutrition Coach",
+    "description": "Dein persönlicher Ernährungscoach",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0f172a",

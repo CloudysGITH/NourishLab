@@ -1,23 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NourishLab - Your Personal Nutrition Coach</title>
-    <meta name="description" content="Science-based personalized meal plans, macro tracking & food tracker. Free, no account needed.">
+    <meta name="description" content="Wissenschaftlich fundierte, persönliche Ernährungspläne, Makro-Ziele &amp; Food-Tracker. Kostenlos, ohne Anmeldung.">
     <!-- Open Graph (WhatsApp, Telegram, Facebook, LinkedIn) -->
-    <meta property="og:title" content="NourishLab - Your Personal Nutrition Coach">
-    <meta property="og:description" content="Science-based personalized meal plans, macro tracking & food tracker. Free, no account needed.">
-    <meta property="og:image" content="https://cloudysgith.github.io/NourishLab/preview.png?v=2">
+    <meta property="og:title" content="NourishLab – Dein persönlicher Ernährungscoach">
+    <meta property="og:description" content="Wissenschaftlich fundierte, persönliche Ernährungspläne, Makro-Ziele &amp; Food-Tracker. Kostenlos, ohne Anmeldung.">
+    <meta property="og:image" content="https://cloudysgith.github.io/NourishLab/preview.png?v=3">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:url" content="https://cloudysgith.github.io/NourishLab/">
     <meta property="og:type" content="website">
+    <meta property="og:locale" content="de_DE">
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="NourishLab - Your Personal Nutrition Coach">
-    <meta name="twitter:description" content="Science-based personalized meal plans, macro tracking & food tracker.">
-    <meta name="twitter:image" content="https://cloudysgith.github.io/NourishLab/preview.png?v=2">
+    <meta name="twitter:title" content="NourishLab – Dein persönlicher Ernährungscoach">
+    <meta name="twitter:description" content="Persönliche Ernährungspläne, Makro-Ziele &amp; Food-Tracker.">
+    <meta name="twitter:image" content="https://cloudysgith.github.io/NourishLab/preview.png?v=3">
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
@@ -75,6 +76,10 @@
     <nav class="navbar" id="navbar">
         <div class="nav-brand">
             <span class="nav-logo">&#129514;</span> NourishLab
+        </div>
+        <div class="lang-toggle" data-no-i18n>
+            <button data-lang="de" onclick="setLanguage('de')">DE</button>
+            <button data-lang="en" onclick="setLanguage('en')">EN</button>
         </div>
         <button class="nav-toggle" id="navToggle" onclick="document.getElementById('navLinks').classList.toggle('open')" aria-label="Menu">
             <span></span><span></span><span></span>
@@ -1054,6 +1059,7 @@
         </div>
     </footer>
 
+    <script src="js/i18n.js"></script>
     <script src="js/app.js"></script>
     <script>
         if ('serviceWorker' in navigator) {

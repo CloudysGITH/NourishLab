@@ -590,7 +590,7 @@ function loadFromStorage() {
 }
 
 function clearSavedData() {
-    if (confirm('Clear all saved data? This will reset all your inputs.')) {
+    if (confirm(L('Clear all saved data? This will reset all your inputs.', 'Alle gespeicherten Daten löschen? Deine Eingaben werden zurückgesetzt.'))) {
         localStorage.removeItem(STORAGE_KEY);
         location.reload();
     }
@@ -648,6 +648,30 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCharts();
 });
 
+// Re-render everything app.js builds with language-dependent text (fixed texts are handled by i18n.js)
+function onLanguageChange() {
+    const scrollY = window.scrollY;
+    updateNutritionRules(parseInt(document.getElementById('mealsPerDay').value) || 3);
+    if (state.results.bmi !== undefined) renderResults();
+    if (state.weekPlan.length) {
+        buildDayTabs(state.currentDay);
+        updateMealplanSubtitle();
+        renderDayPlan(state.currentDay);
+    }
+    if (state.day) renderTracker();
+    if (trackerSelectedFood) document.getElementById('trackerFoodInput').value = foodLabel(trackerSelectedFood);
+    updateTrackerPreview();
+    renderWaterTracker();
+    renderHistory();
+    if (!document.getElementById('trackerFeedback').classList.contains('hidden')) {
+        const entry = getTrackingHistory().find(d => d.date === state.day.date);
+        if (entry) generateFeedback(entry);
+    }
+    if (!document.getElementById('shoppinglist').classList.contains('hidden')) generateShoppingList();
+    // Re-rendering may trigger smooth scrolls; stay where the user is
+    window.scrollTo({ top: scrollY, behavior: 'instant' });
+}
+
 function initNavigation() {
     window.addEventListener('scroll', () => {
         const navbar = document.getElementById('navbar');
@@ -679,9 +703,9 @@ function initForm() {
 
 // === CONDITION CONFLICT HANDLING ===
 const CONDITION_CONFLICTS = [
-    { a: 'hypothyroid', b: 'hyperthyroid', msg: 'Hypothyroidism and Hyperthyroidism are opposites — you can only select one.' },
-    { a: 'pregnant', b: 'menopause', msg: 'Pregnancy and Menopause cannot be selected together.' },
-    { a: 'pregnant', b: 'edrecovery', msg: 'Pregnancy with Eating Disorder Recovery requires specialized medical care. Please consult your healthcare team. Both remain selected, but be aware of limitations.' },
+    { a: 'hypothyroid', b: 'hyperthyroid', msg: T('Hypothyroidism and Hyperthyroidism are opposites — you can only select one.', 'Schilddrüsenunter- und -überfunktion schließen sich aus – du kannst nur eins wählen.') },
+    { a: 'pregnant', b: 'menopause', msg: T('Pregnancy and Menopause cannot be selected together.', 'Schwangerschaft und Wechseljahre können nicht zusammen gewählt werden.') },
+    { a: 'pregnant', b: 'edrecovery', msg: T('Pregnancy with Eating Disorder Recovery requires specialized medical care. Please consult your healthcare team. Both remain selected, but be aware of limitations.', 'Schwangerschaft während einer Essstörungs-Genesung braucht spezielle medizinische Betreuung. Bitte sprich mit deinem Behandlungsteam. Beides bleibt ausgewählt, aber beachte die Einschränkungen.') },
 ];
 
 function initConditionConflicts() {
@@ -716,6 +740,7 @@ function showConditionWarning(msg, type) {
     const existing = document.querySelector('.condition-warning');
     if (existing) existing.remove();
 
+    msg = tr(msg);
     const div = document.createElement('div');
     div.className = 'condition-warning';
     div.style.cssText = `
@@ -853,22 +878,22 @@ function updateNutritionRules(numMeals) {
         document.getElementById('ruleMealGap').style.display = '';
     } else if (numMeals === 4) {
         mealsContent.innerHTML = `
-            <h4>${numMeals} Meals Per Day</h4>
-            <p>Eat four meals per day: 3 main meals plus 1 snack. Keep snacks protein-rich and moderate in size to maintain stable blood sugar levels without over-stimulating insulin.</p>
+            <h4>${L(`${numMeals} Meals Per Day`, `${numMeals} Mahlzeiten pro Tag`)}</h4>
+            <p>${L('Eat four meals per day: 3 main meals plus 1 snack. Keep snacks protein-rich and moderate in size to maintain stable blood sugar levels without over-stimulating insulin.', 'Iss vier Mahlzeiten am Tag: 3 Hauptmahlzeiten plus 1 Snack. Halte Snacks eiweißreich und moderat, damit dein Blutzucker stabil bleibt, ohne das Insulin zu stark anzuregen.')}</p>
         `;
         gapContent.innerHTML = `
-            <h4>3-4 Hour Gap Between Meals</h4>
-            <p>With 4 meals per day, aim for 3-4 hours between meals. This keeps your metabolism active while still allowing adequate digestion time between meals.</p>
+            <h4>${L('3-4 Hour Gap Between Meals', '3–4 Stunden Pause zwischen den Mahlzeiten')}</h4>
+            <p>${L('With 4 meals per day, aim for 3-4 hours between meals. This keeps your metabolism active while still allowing adequate digestion time between meals.', 'Bei 4 Mahlzeiten am Tag plane 3–4 Stunden dazwischen ein. So bleibt dein Stoffwechsel aktiv und du hast trotzdem genug Zeit zum Verdauen.')}</p>
         `;
         document.getElementById('ruleMealGap').style.display = '';
     } else {
         mealsContent.innerHTML = `
-            <h4>${numMeals} Meals Per Day</h4>
-            <p>Eat ${numMeals} smaller meals spread throughout the day. This approach keeps blood sugar stable and can help manage hunger, especially at higher calorie targets. Focus on balanced macros at each meal.</p>
+            <h4>${L(`${numMeals} Meals Per Day`, `${numMeals} Mahlzeiten pro Tag`)}</h4>
+            <p>${L(`Eat ${numMeals} smaller meals spread throughout the day. This approach keeps blood sugar stable and can help manage hunger, especially at higher calorie targets. Focus on balanced macros at each meal.`, `Iss ${numMeals} kleinere Mahlzeiten über den Tag verteilt. Das hält den Blutzucker stabil und hilft gegen Hunger, besonders bei höherem Kalorienziel. Achte bei jeder Mahlzeit auf ausgewogene Makros.`)}</p>
         `;
         gapContent.innerHTML = `
-            <h4>2-3 Hour Gap Between Meals</h4>
-            <p>With ${numMeals} meals per day, eat every 2-3 hours. Keep portion sizes moderate - the goal is steady energy, not large spikes. Plan your last meal at least 2 hours before sleep.</p>
+            <h4>${L('2-3 Hour Gap Between Meals', '2–3 Stunden Pause zwischen den Mahlzeiten')}</h4>
+            <p>${L(`With ${numMeals} meals per day, eat every 2-3 hours. Keep portion sizes moderate - the goal is steady energy, not large spikes. Plan your last meal at least 2 hours before sleep.`, `Bei ${numMeals} Mahlzeiten am Tag iss alle 2–3 Stunden. Halte die Portionen moderat: Ziel ist gleichmäßige Energie statt großer Spitzen. Plane die letzte Mahlzeit mindestens 2 Stunden vor dem Schlafen.`)}</p>
         `;
         document.getElementById('ruleMealGap').style.display = '';
     }
@@ -897,7 +922,7 @@ function calculateResults() {
     };
 
     if (!profile.geschlecht || !profile.alter || !profile.groesse || !profile.gewicht || !profile.aktivitaet || goals.length === 0) {
-        alert('Please fill in all required fields and select at least one goal.');
+        alert(L('Please fill in all required fields and select at least one goal.', 'Bitte fülle alle Pflichtfelder aus und wähle mindestens ein Ziel.'));
         return;
     }
 
@@ -950,39 +975,43 @@ function calculateResults() {
         const dailyDeficit = Math.round(profile.weightlossRate * 7700 / 7);
         const adjustedDeficit = Math.round(dailyDeficit * 0.80);
         targetKcal = tdee - adjustedDeficit;
-        targetDetail = `Recomp: -${adjustedDeficit} kcal/day (${profile.weightlossRate} kg fat loss/week + muscle support)`;
+        targetDetail = T(`Recomp: -${adjustedDeficit} kcal/day (${profile.weightlossRate} kg fat loss/week + muscle support)`, `Recomp: -${adjustedDeficit} kcal/Tag (${profile.weightlossRate} kg Fettabbau/Woche + Muskelerhalt)`);
     } else if (hasFatloss) {
         const dailyDeficit = Math.round(profile.weightlossRate * 7700 / 7);
         targetKcal = tdee - dailyDeficit;
-        targetDetail = `Fat loss: -${dailyDeficit} kcal/day (target ${profile.weightlossRate} kg/week)`;
+        targetDetail = T(`Fat loss: -${dailyDeficit} kcal/day (target ${profile.weightlossRate} kg/week)`, `Fettabbau: -${dailyDeficit} kcal/Tag (Ziel ${profile.weightlossRate} kg/Woche)`);
     } else if (hasMuscle) {
         targetKcal = Math.round(tdee * 1.10);
-        targetDetail = '+10% caloric surplus for muscle building';
+        targetDetail = T('+10% caloric surplus for muscle building', '+10 % Kalorienüberschuss für Muskelaufbau');
     } else if (hasMaintain) {
         targetKcal = tdee;
-        targetDetail = 'Maintenance calories';
+        targetDetail = T('Maintenance calories', 'Erhaltungskalorien');
     } else {
         targetKcal = tdee;
-        targetDetail = 'Maintenance calories';
+        targetDetail = T('Maintenance calories', 'Erhaltungskalorien');
     }
 
     // Eating disorder recovery: never suggest a deficit
     if (profile.umstaende.includes('edrecovery')) {
         if (targetKcal < tdee) {
             targetKcal = tdee;
-            targetDetail = 'Maintenance calories (deficit disabled for ED recovery)';
+            targetDetail = T('Maintenance calories (deficit disabled for ED recovery)', 'Erhaltungskalorien (kein Defizit während der Essstörungs-Genesung)');
         }
     }
 
     // Add extra calories for pregnancy / breastfeeding
     if (extraKcal > 0) {
         targetKcal += extraKcal;
-        targetDetail += ` (+${extraKcal} kcal for ${profile.umstaende.includes('pregnant') ? 'pregnancy' : ''}${profile.umstaende.includes('pregnant') && profile.umstaende.includes('breastfeeding') ? ' & ' : ''}${profile.umstaende.includes('breastfeeding') ? 'breastfeeding' : ''})`;
+        const preg = profile.umstaende.includes('pregnant');
+        const bf = profile.umstaende.includes('breastfeeding');
+        const reasonEn = [preg && 'pregnancy', bf && 'breastfeeding'].filter(Boolean).join(' & ');
+        const reasonDe = [preg && 'Schwangerschaft', bf && 'Stillzeit'].filter(Boolean).join(' & ');
+        targetDetail = T(`${targetDetail.en} (+${extraKcal} kcal for ${reasonEn})`, `${targetDetail.de} (+${extraKcal} kcal für ${reasonDe})`);
     }
 
     if (targetKcal < Math.round(bmr)) {
         targetKcal = Math.round(bmr);
-        targetDetail += ' (raised to BMR minimum)';
+        targetDetail = T(`${targetDetail.en} (raised to BMR minimum)`, `${targetDetail.de} (auf Grundumsatz angehoben)`);
     }
 
     // === MACRO CALCULATION ===
@@ -1039,10 +1068,10 @@ function renderResults() {
 
     document.getElementById('resultBMI').textContent = bmi.toFixed(1);
     let bmiCategory;
-    if (bmi < 18.5) bmiCategory = 'Underweight';
-    else if (bmi < 25) bmiCategory = 'Normal weight';
-    else if (bmi < 30) bmiCategory = 'Overweight';
-    else bmiCategory = 'Obese';
+    if (bmi < 18.5) bmiCategory = L('Underweight', 'Untergewicht');
+    else if (bmi < 25) bmiCategory = L('Normal weight', 'Normalgewicht');
+    else if (bmi < 30) bmiCategory = L('Overweight', 'Übergewicht');
+    else bmiCategory = L('Obese', 'Adipositas');
     document.getElementById('resultBMIDetail').textContent = bmiCategory;
 
     const bmiPos = Math.min(Math.max((bmi - 16) / (40 - 16) * 100, 0), 100);
@@ -1051,14 +1080,14 @@ function renderResults() {
     document.getElementById('resultBMR').textContent = bmr + ' kcal';
     document.getElementById('resultTDEE').textContent = tdee + ' kcal';
     document.getElementById('resultTarget').textContent = targetKcal + ' kcal';
-    document.getElementById('resultTargetDetail').textContent = targetDetail;
+    document.getElementById('resultTargetDetail').textContent = tr(targetDetail);
 
     const badgeContainer = document.getElementById('goalBadgeContainer');
     const goalLabels = {
-        fatloss: { label: '&#128293; Fat Loss', cls: 'fatloss' },
-        muscle: { label: '&#128170; Muscle Building', cls: 'muscle' },
-        maintain: { label: '&#9878; Maintain', cls: 'maintain' },
-        wellbeing: { label: '&#127804; Wellbeing', cls: 'wellbeing' }
+        fatloss: { label: '&#128293; ' + L('Fat Loss', 'Fettabbau'), cls: 'fatloss' },
+        muscle: { label: '&#128170; ' + L('Muscle Building', 'Muskelaufbau'), cls: 'muscle' },
+        maintain: { label: '&#9878; ' + L('Maintain', 'Gewicht halten'), cls: 'maintain' },
+        wellbeing: { label: '&#127804; ' + L('Wellbeing', 'Wohlbefinden'), cls: 'wellbeing' }
     };
     badgeContainer.innerHTML = state.profile.goals.map(g => {
         const info = goalLabels[g];
@@ -1074,7 +1103,7 @@ function renderResults() {
     document.getElementById('fiberRing').style.strokeDashoffset = 251.2 * 0.5;
 
     const waterLiters = (state.profile.gewicht * 35 / 1000).toFixed(1);
-    document.getElementById('waterTarget').textContent = waterLiters + ' liters (' + Math.round(state.profile.gewicht * 35) + ' ml)';
+    document.getElementById('waterTarget').textContent = waterLiters + L(' liters (', ' Liter (') + Math.round(state.profile.gewicht * 35) + ' ml)';
 
     renderHints();
 }
@@ -1097,10 +1126,14 @@ function renderHints() {
     if (p.goals.includes('muscle') && !p.goals.includes('fatloss')) {
         hints.push({
             icon: '&#128170;',
-            text: `<strong>Muscle Building - How it affects your plan:</strong><br>
+            text: L(`<strong>Muscle Building - How it affects your plan:</strong><br>
             <span class="hint-effect">&#10132; Your calories are set ${Math.round(state.results.targetKcal - state.results.tdee)} kcal <em>above</em> your maintenance (+10% surplus).</span><br>
             <span class="hint-effect">&#10132; Protein is set to ${m.protein.grams}g/day (2.2g per kg body weight).</span><br>
-            <span class="hint-why"><strong>Why?</strong> Building muscle tissue requires extra energy (caloric surplus) and amino acids (protein). Without a surplus, your body lacks the building blocks for new muscle. The 2.2g/kg protein target is based on research showing this is the upper threshold where muscle protein synthesis is maximized. Going higher provides no additional benefit. The +10% surplus is moderate - enough for muscle growth while minimizing fat gain.</span>`
+            <span class="hint-why"><strong>Why?</strong> Building muscle tissue requires extra energy (caloric surplus) and amino acids (protein). Without a surplus, your body lacks the building blocks for new muscle. The 2.2g/kg protein target is based on research showing this is the upper threshold where muscle protein synthesis is maximized. Going higher provides no additional benefit. The +10% surplus is moderate - enough for muscle growth while minimizing fat gain.</span>`,
+            `<strong>Muskelaufbau – so wirkt es sich auf deinen Plan aus:</strong><br>
+            <span class="hint-effect">&#10132; Deine Kalorien liegen ${Math.round(state.results.targetKcal - state.results.tdee)} kcal <em>über</em> deinem Erhaltungsbedarf (+10 % Überschuss).</span><br>
+            <span class="hint-effect">&#10132; Protein ist auf ${m.protein.grams}g/Tag gesetzt (2,2 g pro kg Körpergewicht).</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Für den Aufbau von Muskelgewebe braucht dein Körper zusätzliche Energie (Kalorienüberschuss) und Aminosäuren (Protein). Ohne Überschuss fehlen ihm die Bausteine für neue Muskulatur. Das Ziel von 2,2 g/kg Protein beruht auf Studien, die zeigen, dass hier die obere Schwelle liegt, ab der die Muskelproteinsynthese maximal ist. Mehr bringt keinen zusätzlichen Nutzen. Der Überschuss von +10 % ist moderat – genug für Muskelwachstum, bei möglichst wenig Fettzunahme.</span>`)
         });
     }
 
@@ -1108,10 +1141,14 @@ function renderHints() {
         const adjustedDeficit = Math.round(p.weightlossRate * 7700 / 7 * 0.80);
         hints.push({
             icon: '&#128170;&#128293;',
-            text: `<strong>Body Recomposition - The Science:</strong><br>
+            text: L(`<strong>Body Recomposition - The Science:</strong><br>
             <span class="hint-effect">&#10132; Deficit reduced to -${adjustedDeficit} kcal/day (80% of a pure fat-loss deficit).</span><br>
             <span class="hint-effect">&#10132; Protein maximized at ${m.protein.grams}g/day (2.2g/kg) to preserve & build muscle.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Body recomposition (losing fat while gaining muscle) is possible but requires precision. A smaller deficit gives your body enough energy to support muscle protein synthesis while still losing fat. Research shows that higher protein intakes (1.8-2.2g/kg) during a caloric deficit significantly reduce muscle loss. Your body can redirect stored fat energy toward muscle building - but only if protein is high enough and the deficit isn't too aggressive. Strength training is essential: it provides the stimulus that tells your body to keep (and build) muscle instead of breaking it down.</span>`
+            <span class="hint-why"><strong>Why?</strong> Body recomposition (losing fat while gaining muscle) is possible but requires precision. A smaller deficit gives your body enough energy to support muscle protein synthesis while still losing fat. Research shows that higher protein intakes (1.8-2.2g/kg) during a caloric deficit significantly reduce muscle loss. Your body can redirect stored fat energy toward muscle building - but only if protein is high enough and the deficit isn't too aggressive. Strength training is essential: it provides the stimulus that tells your body to keep (and build) muscle instead of breaking it down.</span>`,
+            `<strong>Body Recomposition – die Wissenschaft dahinter:</strong><br>
+            <span class="hint-effect">&#10132; Defizit reduziert auf -${adjustedDeficit} kcal/Tag (80 % eines reinen Fettabbau-Defizits).</span><br>
+            <span class="hint-effect">&#10132; Protein maximiert auf ${m.protein.grams}g/Tag (2,2 g/kg), um Muskeln zu erhalten und aufzubauen.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Body Recomposition (Fett verlieren und gleichzeitig Muskeln aufbauen) ist möglich, erfordert aber Präzision. Ein kleineres Defizit gibt deinem Körper genug Energie für die Muskelproteinsynthese, während du trotzdem Fett verlierst. Studien zeigen, dass eine höhere Proteinzufuhr (1,8–2,2 g/kg) im Kaloriendefizit den Muskelabbau deutlich verringert. Dein Körper kann gespeicherte Fettenergie in den Muskelaufbau umleiten – aber nur, wenn genug Protein da ist und das Defizit nicht zu aggressiv ist. Krafttraining ist unverzichtbar: Es liefert den Reiz, der deinem Körper signalisiert, Muskeln zu behalten (und aufzubauen) statt sie abzubauen.</span>`)
         });
     }
 
@@ -1119,30 +1156,42 @@ function renderHints() {
         const dailyDeficit = Math.round(p.weightlossRate * 7700 / 7);
         hints.push({
             icon: '&#128293;',
-            text: `<strong>Fat Loss - How your plan is calculated:</strong><br>
+            text: L(`<strong>Fat Loss - How your plan is calculated:</strong><br>
             <span class="hint-effect">&#10132; Daily deficit: -${dailyDeficit} kcal (target: ${p.weightlossRate} kg/week).</span><br>
             <span class="hint-effect">&#10132; Protein set to ${m.protein.grams}g/day (1.8g/kg) - higher than normal to protect muscle.</span><br>
-            <span class="hint-why"><strong>Why?</strong> 1 kg of body fat stores approximately 7,700 kcal. So to lose ${p.weightlossRate} kg per week, you need a daily deficit of ~${dailyDeficit} kcal. Your protein is elevated because during a caloric deficit, your body may break down muscle for energy. High protein intake (1.6-2.0g/kg) has been shown in multiple studies to significantly preserve lean mass during weight loss. The 5-hour gaps between meals allow insulin to drop, which promotes fat oxidation (burning). No snacking is critical - every snack spikes insulin and stops fat burning.</span>`
+            <span class="hint-why"><strong>Why?</strong> 1 kg of body fat stores approximately 7,700 kcal. So to lose ${p.weightlossRate} kg per week, you need a daily deficit of ~${dailyDeficit} kcal. Your protein is elevated because during a caloric deficit, your body may break down muscle for energy. High protein intake (1.6-2.0g/kg) has been shown in multiple studies to significantly preserve lean mass during weight loss. The 5-hour gaps between meals allow insulin to drop, which promotes fat oxidation (burning). No snacking is critical - every snack spikes insulin and stops fat burning.</span>`,
+            `<strong>Fettabbau – so wird dein Plan berechnet:</strong><br>
+            <span class="hint-effect">&#10132; Tägliches Defizit: -${dailyDeficit} kcal (Ziel: ${p.weightlossRate} kg/Woche).</span><br>
+            <span class="hint-effect">&#10132; Protein auf ${m.protein.grams}g/Tag gesetzt (1,8 g/kg) – höher als normal, um deine Muskeln zu schützen.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> 1 kg Körperfett speichert etwa 7.700 kcal. Um ${p.weightlossRate} kg pro Woche zu verlieren, brauchst du also ein tägliches Defizit von ca. ${dailyDeficit} kcal. Dein Protein ist erhöht, weil dein Körper im Kaloriendefizit Muskeln zur Energiegewinnung abbauen kann. Eine hohe Proteinzufuhr (1,6–2,0 g/kg) erhält laut mehreren Studien die fettfreie Masse beim Abnehmen deutlich besser. Die 5-Stunden-Pausen zwischen den Mahlzeiten lassen den Insulinspiegel sinken, was die Fettverbrennung fördert. Nicht zu snacken ist entscheidend – jeder Snack lässt das Insulin steigen und stoppt die Fettverbrennung.</span>`)
         });
     }
 
     if (p.goals.includes('maintain')) {
         hints.push({
             icon: '&#9878;',
-            text: `<strong>Weight Maintenance - Your TDEE explained:</strong><br>
+            text: L(`<strong>Weight Maintenance - Your TDEE explained:</strong><br>
             <span class="hint-effect">&#10132; Calories set at ${state.results.targetKcal} kcal (= your Total Daily Energy Expenditure).</span><br>
             <span class="hint-effect">&#10132; Balanced macros: ${m.protein.percent}% protein, ${m.carbs.percent}% carbs, ${m.fats.percent}% fats.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Your TDEE (${state.results.tdee} kcal) is calculated from your Basal Metabolic Rate (${state.results.bmr} kcal - the energy your body needs at complete rest) multiplied by your activity factor (${p.aktivitaet}). Eating at TDEE means energy in = energy out, maintaining your current weight. The ${m.protein.grams}g protein (${(m.protein.grams/p.gewicht).toFixed(1)}g/kg) is sufficient to maintain muscle mass and support daily recovery.</span>`
+            <span class="hint-why"><strong>Why?</strong> Your TDEE (${state.results.tdee} kcal) is calculated from your Basal Metabolic Rate (${state.results.bmr} kcal - the energy your body needs at complete rest) multiplied by your activity factor (${p.aktivitaet}). Eating at TDEE means energy in = energy out, maintaining your current weight. The ${m.protein.grams}g protein (${(m.protein.grams/p.gewicht).toFixed(1)}g/kg) is sufficient to maintain muscle mass and support daily recovery.</span>`,
+            `<strong>Gewicht halten – dein TDEE erklärt:</strong><br>
+            <span class="hint-effect">&#10132; Kalorien auf ${state.results.targetKcal} kcal gesetzt (= dein täglicher Gesamtenergieverbrauch).</span><br>
+            <span class="hint-effect">&#10132; Ausgewogene Makros: ${m.protein.percent} % Protein, ${m.carbs.percent} % Kohlenhydrate, ${m.fats.percent} % Fett.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Dein TDEE (${state.results.tdee} kcal) berechnet sich aus deinem Grundumsatz (${state.results.bmr} kcal – die Energie, die dein Körper in völliger Ruhe braucht), multipliziert mit deinem Aktivitätsfaktor (${p.aktivitaet}). Isst du auf TDEE-Niveau, gilt: Energie rein = Energie raus, und dein Gewicht bleibt stabil. Die ${m.protein.grams}g Protein (${(m.protein.grams/p.gewicht).toFixed(1)}g/kg) reichen aus, um deine Muskelmasse zu erhalten und die tägliche Regeneration zu unterstützen.</span>`)
         });
     }
 
     if (p.goals.includes('wellbeing')) {
         hints.push({
             icon: '&#127804;',
-            text: `<strong>General Wellbeing - Nutrition as Medicine:</strong><br>
+            text: L(`<strong>General Wellbeing - Nutrition as Medicine:</strong><br>
             <span class="hint-effect">&#10132; Focus on nutrient density, variety, and meal timing.</span><br>
             <span class="hint-effect">&#10132; Fiber target: ${m.fiber.grams}g/day for gut health.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Modern nutritional science increasingly views food as medicine. The 3-meal structure with 5-hour gaps isn't just about weight - it regulates your circadian insulin rhythm, which affects energy, mood, and sleep quality. Starting each meal with protein stabilizes blood sugar for hours, preventing the energy crashes that come from carb-first eating. The "one apple before bed" rule provides pectin, a prebiotic fiber that feeds beneficial gut bacteria overnight. Your gut microbiome influences everything from immune function to serotonin production (95% of serotonin is made in the gut!).</span>`
+            <span class="hint-why"><strong>Why?</strong> Modern nutritional science increasingly views food as medicine. The 3-meal structure with 5-hour gaps isn't just about weight - it regulates your circadian insulin rhythm, which affects energy, mood, and sleep quality. Starting each meal with protein stabilizes blood sugar for hours, preventing the energy crashes that come from carb-first eating. The "one apple before bed" rule provides pectin, a prebiotic fiber that feeds beneficial gut bacteria overnight. Your gut microbiome influences everything from immune function to serotonin production (95% of serotonin is made in the gut!).</span>`,
+            `<strong>Allgemeines Wohlbefinden – Ernährung als Medizin:</strong><br>
+            <span class="hint-effect">&#10132; Fokus auf Nährstoffdichte, Abwechslung und Mahlzeiten-Timing.</span><br>
+            <span class="hint-effect">&#10132; Ballaststoffziel: ${m.fiber.grams}g/Tag für deine Darmgesundheit.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Die moderne Ernährungswissenschaft sieht Essen zunehmend als Medizin. Die Struktur mit 3 Mahlzeiten und 5-Stunden-Pausen dient nicht nur dem Gewicht – sie reguliert deinen zirkadianen Insulinrhythmus, der Energie, Stimmung und Schlafqualität beeinflusst. Jede Mahlzeit mit Protein zu beginnen, stabilisiert deinen Blutzucker für Stunden und verhindert die Energietiefs, die entstehen, wenn du zuerst Kohlenhydrate isst. Die Regel „ein Apfel vor dem Schlafen“ liefert Pektin, einen präbiotischen Ballaststoff, der über Nacht nützliche Darmbakterien ernährt. Dein Darmmikrobiom beeinflusst alles – von der Immunfunktion bis zur Serotoninproduktion (95 % des Serotonins entstehen im Darm!).</span>`)
         });
     }
 
@@ -1153,140 +1202,196 @@ function renderHints() {
         const extraP = tri === 1 ? 0 : tri === 2 ? 340 : 450;
         hints.push({
             icon: '&#129328;',
-            text: `<strong>Pregnancy (Trimester ${tri}) - Eating for two, wisely:</strong><br>
+            text: L(`<strong>Pregnancy (Trimester ${tri}) - Eating for two, wisely:</strong><br>
             <span class="hint-effect">&#10132; Calories increased by +${extraP} kcal/day for trimester ${tri}.</span><br>
             <span class="hint-effect">&#10132; Protein raised to ${m.protein.grams}g/day to support fetal growth.</span><br>
-            <span class="hint-why"><strong>Why?</strong> In the 1st trimester, the embryo is tiny and calorie needs don't increase yet - focus on nutrient quality (folate!). From the 2nd trimester, fetal growth accelerates and your body needs +340 kcal/day. In the 3rd trimester, this rises to +450 kcal/day as the baby gains most of its weight. <em>Critical nutrients:</em> Folate (600 mcg/day - leafy greens, legumes) prevents neural tube defects. Iron (27 mg/day - nearly double normal) supports the 50% increase in blood volume. DHA/Omega-3 (fatty fish, walnuts) is essential for fetal brain development. <em>Avoid:</em> alcohol, high-mercury fish (swordfish, king mackerel), excess vitamin A from liver. Always consult your healthcare provider for personalized guidance.</span>`
+            <span class="hint-why"><strong>Why?</strong> In the 1st trimester, the embryo is tiny and calorie needs don't increase yet - focus on nutrient quality (folate!). From the 2nd trimester, fetal growth accelerates and your body needs +340 kcal/day. In the 3rd trimester, this rises to +450 kcal/day as the baby gains most of its weight. <em>Critical nutrients:</em> Folate (600 mcg/day - leafy greens, legumes) prevents neural tube defects. Iron (27 mg/day - nearly double normal) supports the 50% increase in blood volume. DHA/Omega-3 (fatty fish, walnuts) is essential for fetal brain development. <em>Avoid:</em> alcohol, high-mercury fish (swordfish, king mackerel), excess vitamin A from liver. Always consult your healthcare provider for personalized guidance.</span>`,
+            `<strong>Schwangerschaft (${tri}. Trimester) – klug für zwei essen:</strong><br>
+            <span class="hint-effect">&#10132; Kalorien um +${extraP} kcal/Tag erhöht für das ${tri}. Trimester.</span><br>
+            <span class="hint-effect">&#10132; Protein auf ${m.protein.grams}g/Tag erhöht, um das Wachstum des Babys zu unterstützen.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Im 1. Trimester ist der Embryo winzig und der Kalorienbedarf steigt noch nicht – konzentriere dich auf Nährstoffqualität (Folat!). Ab dem 2. Trimester beschleunigt sich das Wachstum und dein Körper braucht +340 kcal/Tag. Im 3. Trimester steigt das auf +450 kcal/Tag, da das Baby den Großteil seines Gewichts zulegt. <em>Wichtige Nährstoffe:</em> Folat (600 µg/Tag – Blattgemüse, Hülsenfrüchte) beugt Neuralrohrdefekten vor. Eisen (27 mg/Tag – fast doppelt so viel wie normal) unterstützt die 50-prozentige Zunahme des Blutvolumens. DHA/Omega-3 (fetter Fisch, Walnüsse) ist essenziell für die Gehirnentwicklung des Babys. <em>Meiden:</em> Alkohol, quecksilberreicher Fisch (Schwertfisch, Königsmakrele), zu viel Vitamin A aus Leber. Sprich für eine persönliche Beratung immer mit deiner Ärztin, deinem Arzt oder deiner Hebamme.</span>`)
         });
     }
 
     if (p.umstaende.includes('breastfeeding')) {
         hints.push({
             icon: '&#129329;',
-            text: `<strong>Breastfeeding - Fueling milk production:</strong><br>
+            text: L(`<strong>Breastfeeding - Fueling milk production:</strong><br>
             <span class="hint-effect">&#10132; Calories increased by +400 kcal/day for milk production.</span><br>
             <span class="hint-effect">&#10132; Protein raised to ${m.protein.grams}g/day. Hydration is critical.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Producing breast milk costs approximately 67-77 kcal per 100 mL. Exclusive breastfeeding typically produces 750-800 mL/day, requiring significant extra energy. Your body also draws from fat stores laid down during pregnancy, so the caloric supplement doesn't need to cover 100% of milk energy. <em>Key nutrients:</em> Iodine (290 mcg/day - seafood, dairy) is essential for your baby's thyroid and brain development. Choline (550 mg/day - eggs, liver) supports infant brain development. Vitamin D (600+ IU/day) and calcium (1000 mg/day) protect both your bones and your baby's skeletal development. Drink at least 2.5-3L of water daily - thirst is a reliable guide. Avoid strict dieting during breastfeeding as it can reduce milk supply.</span>`
+            <span class="hint-why"><strong>Why?</strong> Producing breast milk costs approximately 67-77 kcal per 100 mL. Exclusive breastfeeding typically produces 750-800 mL/day, requiring significant extra energy. Your body also draws from fat stores laid down during pregnancy, so the caloric supplement doesn't need to cover 100% of milk energy. <em>Key nutrients:</em> Iodine (290 mcg/day - seafood, dairy) is essential for your baby's thyroid and brain development. Choline (550 mg/day - eggs, liver) supports infant brain development. Vitamin D (600+ IU/day) and calcium (1000 mg/day) protect both your bones and your baby's skeletal development. Drink at least 2.5-3L of water daily - thirst is a reliable guide. Avoid strict dieting during breastfeeding as it can reduce milk supply.</span>`,
+            `<strong>Stillzeit – Energie für die Milchbildung:</strong><br>
+            <span class="hint-effect">&#10132; Kalorien um +400 kcal/Tag für die Milchbildung erhöht.</span><br>
+            <span class="hint-effect">&#10132; Protein auf ${m.protein.grams}g/Tag erhöht. Ausreichend trinken ist entscheidend.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Die Bildung von Muttermilch kostet etwa 67–77 kcal pro 100 ml. Bei ausschließlichem Stillen entstehen typischerweise 750–800 ml/Tag, was deutlich mehr Energie erfordert. Dein Körper greift außerdem auf die in der Schwangerschaft angelegten Fettreserven zurück, sodass der Kalorienzuschlag nicht 100 % der Milchenergie abdecken muss. <em>Wichtige Nährstoffe:</em> Jod (290 µg/Tag – Meeresfrüchte, Milchprodukte) ist essenziell für die Schilddrüsen- und Gehirnentwicklung deines Babys. Cholin (550 mg/Tag – Eier, Leber) unterstützt die Gehirnentwicklung des Säuglings. Vitamin D (600+ IE/Tag) und Calcium (1000 mg/Tag) schützen deine Knochen und die Skelettentwicklung deines Babys. Trink täglich mindestens 2,5–3 l Wasser – Durst ist ein verlässlicher Wegweiser. Verzichte in der Stillzeit auf strenge Diäten, da sie die Milchmenge verringern können.</span>`)
         });
     }
 
     if (p.umstaende.includes('pcos')) {
         hints.push({
             icon: '&#9792;&#65039;',
-            text: `<strong>PCOS - Insulin & hormonal balance:</strong><br>
+            text: L(`<strong>PCOS - Insulin & hormonal balance:</strong><br>
             <span class="hint-effect">&#10132; BMR reduced by 10% (hormonal metabolic impact).</span><br>
             <span class="hint-effect">&#10132; Higher protein (${m.protein.grams}g/day), emphasis on low-GI carbs.</span><br>
-            <span class="hint-why"><strong>Why?</strong> PCOS affects 6-12% of women and is strongly linked to insulin resistance, even in lean individuals. Studies show women with PCOS have a resting metabolic rate 40-80 kcal/day lower than weight-matched controls. The insulin resistance drives excess androgen production, worsening symptoms. <em>Nutritional strategy:</em> Low glycemic index carbohydrates (oats, legumes, sweet potatoes) help stabilize blood sugar and reduce insulin spikes. Higher protein increases satiety and supports stable blood sugar. Anti-inflammatory foods (omega-3 rich fish, turmeric, berries) may help reduce chronic low-grade inflammation associated with PCOS. Inositol (found in citrus fruits, beans) has shown promise in improving insulin sensitivity in PCOS.</span>`
+            <span class="hint-why"><strong>Why?</strong> PCOS affects 6-12% of women and is strongly linked to insulin resistance, even in lean individuals. Studies show women with PCOS have a resting metabolic rate 40-80 kcal/day lower than weight-matched controls. The insulin resistance drives excess androgen production, worsening symptoms. <em>Nutritional strategy:</em> Low glycemic index carbohydrates (oats, legumes, sweet potatoes) help stabilize blood sugar and reduce insulin spikes. Higher protein increases satiety and supports stable blood sugar. Anti-inflammatory foods (omega-3 rich fish, turmeric, berries) may help reduce chronic low-grade inflammation associated with PCOS. Inositol (found in citrus fruits, beans) has shown promise in improving insulin sensitivity in PCOS.</span>`,
+            `<strong>PCOS – Insulin & hormonelles Gleichgewicht:</strong><br>
+            <span class="hint-effect">&#10132; Grundumsatz um 10 % reduziert (hormoneller Einfluss auf den Stoffwechsel).</span><br>
+            <span class="hint-effect">&#10132; Mehr Protein (${m.protein.grams}g/Tag), Schwerpunkt auf Kohlenhydraten mit niedrigem GI.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> PCOS betrifft 6–12 % der Frauen und hängt eng mit Insulinresistenz zusammen, auch bei schlanken Personen. Studien zeigen, dass Frauen mit PCOS einen um 40–80 kcal/Tag niedrigeren Ruheumsatz haben als gleich schwere Vergleichspersonen. Die Insulinresistenz treibt eine übermäßige Androgenproduktion an und verstärkt die Symptome. <em>Ernährungsstrategie:</em> Kohlenhydrate mit niedrigem glykämischem Index (Haferflocken, Hülsenfrüchte, Süßkartoffeln) stabilisieren den Blutzucker und verringern Insulinspitzen. Mehr Protein sättigt länger und unterstützt einen stabilen Blutzucker. Entzündungshemmende Lebensmittel (omega-3-reicher Fisch, Kurkuma, Beeren) können die mit PCOS verbundene chronische, unterschwellige Entzündung verringern. Inositol (in Zitrusfrüchten, Bohnen) zeigt vielversprechende Ergebnisse bei der Verbesserung der Insulinsensitivität bei PCOS.</span>`)
         });
     }
 
     if (p.umstaende.includes('menopause')) {
         hints.push({
             icon: '&#127804;',
-            text: `<strong>Menopause - Metabolic changes & your plan:</strong><br>
+            text: L(`<strong>Menopause - Metabolic changes & your plan:</strong><br>
             <span class="hint-effect">&#10132; BMR reduced by 5% (hormonal metabolic slowdown).</span><br>
             <span class="hint-effect">&#10132; Fat ratio increased to ${m.fats.percent}% (vs. standard 30%).</span><br>
-            <span class="hint-why"><strong>Why?</strong> During menopause, declining estrogen levels cause several metabolic shifts: (1) BMR decreases ~5-10% because estrogen normally supports metabolic rate, (2) the body tends to redistribute fat toward the abdomen, and (3) bone density decreases. The higher fat intake supports hormone production - your body still makes estrogen in smaller amounts via fat tissue and adrenal glands, and dietary fat is the precursor for all steroid hormones. <em>Focus foods:</em> Phytoestrogens (flaxseed, soy) can mildly mimic estrogen. Calcium (1200 mg/day) + Vitamin D are critical for bone health. Strength training is the single most effective intervention against both muscle and bone loss during menopause.</span>`
+            <span class="hint-why"><strong>Why?</strong> During menopause, declining estrogen levels cause several metabolic shifts: (1) BMR decreases ~5-10% because estrogen normally supports metabolic rate, (2) the body tends to redistribute fat toward the abdomen, and (3) bone density decreases. The higher fat intake supports hormone production - your body still makes estrogen in smaller amounts via fat tissue and adrenal glands, and dietary fat is the precursor for all steroid hormones. <em>Focus foods:</em> Phytoestrogens (flaxseed, soy) can mildly mimic estrogen. Calcium (1200 mg/day) + Vitamin D are critical for bone health. Strength training is the single most effective intervention against both muscle and bone loss during menopause.</span>`,
+            `<strong>Wechseljahre – Stoffwechselveränderungen & dein Plan:</strong><br>
+            <span class="hint-effect">&#10132; Grundumsatz um 5 % reduziert (hormonell bedingte Verlangsamung des Stoffwechsels).</span><br>
+            <span class="hint-effect">&#10132; Fettanteil auf ${m.fats.percent} % erhöht (statt standardmäßig 30 %).</span><br>
+            <span class="hint-why"><strong>Warum?</strong> In den Wechseljahren führt der sinkende Östrogenspiegel zu mehreren Stoffwechselveränderungen: (1) Der Grundumsatz sinkt um ca. 5–10 %, weil Östrogen normalerweise den Stoffwechsel unterstützt, (2) der Körper neigt dazu, Fett in Richtung Bauch umzuverteilen, und (3) die Knochendichte nimmt ab. Die höhere Fettzufuhr unterstützt die Hormonproduktion – dein Körper bildet weiterhin in kleineren Mengen Östrogen über das Fettgewebe und die Nebennieren, und Nahrungsfett ist die Vorstufe aller Steroidhormone. <em>Fokus-Lebensmittel:</em> Phytoöstrogene (Leinsamen, Soja) können Östrogen leicht nachahmen. Calcium (1200 mg/Tag) und Vitamin D sind entscheidend für die Knochengesundheit. Krafttraining ist die wirksamste einzelne Maßnahme gegen Muskel- und Knochenabbau in den Wechseljahren.</span>`)
         });
     }
 
     if (p.umstaende.includes('hypothyroid')) {
         hints.push({
             icon: '&#129516;',
-            text: `<strong>Hypothyroidism - Slowed metabolism:</strong><br>
+            text: L(`<strong>Hypothyroidism - Slowed metabolism:</strong><br>
             <span class="hint-effect">&#10132; Your BMR has been reduced by 10% (from ${Math.round(state.results.bmr / 0.90)} to ${state.results.bmr} kcal).</span><br>
             <span class="hint-effect">&#10132; Meal plan includes iodine and selenium-rich foods when available.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Hypothyroidism means your thyroid produces insufficient T3 and T4 hormones, which directly regulate metabolic rate. This can reduce BMR by 10-15%, even with medication. <em>Key nutrients:</em> Iodine is the raw material for thyroid hormones (found in fish, seaweed, dairy). Selenium is needed by the enzyme that converts T4 into the active T3 form (Brazil nuts - just 1-2 per day). Zinc also supports thyroid function (pumpkin seeds, legumes). <em>Note:</em> If you take levothyroxine, take it on an empty stomach 30-60 min before eating, and avoid calcium/iron supplements within 4 hours as they impair absorption.</span>`
+            <span class="hint-why"><strong>Why?</strong> Hypothyroidism means your thyroid produces insufficient T3 and T4 hormones, which directly regulate metabolic rate. This can reduce BMR by 10-15%, even with medication. <em>Key nutrients:</em> Iodine is the raw material for thyroid hormones (found in fish, seaweed, dairy). Selenium is needed by the enzyme that converts T4 into the active T3 form (Brazil nuts - just 1-2 per day). Zinc also supports thyroid function (pumpkin seeds, legumes). <em>Note:</em> If you take levothyroxine, take it on an empty stomach 30-60 min before eating, and avoid calcium/iron supplements within 4 hours as they impair absorption.</span>`,
+            `<strong>Schilddrüsenunterfunktion – verlangsamter Stoffwechsel:</strong><br>
+            <span class="hint-effect">&#10132; Dein Grundumsatz wurde um 10 % reduziert (von ${Math.round(state.results.bmr / 0.90)} auf ${state.results.bmr} kcal).</span><br>
+            <span class="hint-effect">&#10132; Der Plan enthält jod- und selenreiche Lebensmittel, sofern verfügbar.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Bei einer Schilddrüsenunterfunktion bildet deine Schilddrüse zu wenig T3- und T4-Hormone, die den Stoffwechsel direkt steuern. Das kann den Grundumsatz um 10–15 % senken, selbst mit Medikamenten. <em>Wichtige Nährstoffe:</em> Jod ist der Rohstoff für Schilddrüsenhormone (in Fisch, Algen, Milchprodukten). Selen braucht das Enzym, das T4 in die aktive Form T3 umwandelt (Paranüsse – nur 1–2 pro Tag). Auch Zink unterstützt die Schilddrüsenfunktion (Kürbiskerne, Hülsenfrüchte). <em>Hinweis:</em> Wenn du Levothyroxin nimmst, nimm es nüchtern 30–60 Minuten vor dem Essen ein und meide Calcium- oder Eisenpräparate innerhalb von 4 Stunden, da sie die Aufnahme beeinträchtigen.</span>`)
         });
     }
 
     if (p.umstaende.includes('hyperthyroid')) {
         hints.push({
             icon: '&#128293;',
-            text: `<strong>Hyperthyroidism - Elevated metabolism:</strong><br>
+            text: L(`<strong>Hyperthyroidism - Elevated metabolism:</strong><br>
             <span class="hint-effect">&#10132; Your BMR has been increased by 15% (from ${Math.round(state.results.bmr / 1.15)} to ${state.results.bmr} kcal).</span><br>
             <span class="hint-effect">&#10132; Higher calorie and protein targets to prevent muscle wasting.</span><br>
-            <span class="hint-why"><strong>Why?</strong> An overactive thyroid floods your body with T3/T4 hormones, accelerating metabolism by 10-30%. This causes rapid weight loss, muscle breakdown, and bone density loss if not managed. <em>Nutritional strategy:</em> Higher calorie intake prevents unintended weight loss. Extra protein (1.5-2g/kg) helps counteract muscle catabolism. Calcium and Vitamin D are crucial as hyperthyroidism accelerates bone turnover. <em>Important:</em> Avoid excess iodine (seaweed, kelp supplements) as it can worsen the condition. Cruciferous vegetables (broccoli, cauliflower) have mild anti-thyroid properties and are generally beneficial. Work closely with your endocrinologist.</span>`
+            <span class="hint-why"><strong>Why?</strong> An overactive thyroid floods your body with T3/T4 hormones, accelerating metabolism by 10-30%. This causes rapid weight loss, muscle breakdown, and bone density loss if not managed. <em>Nutritional strategy:</em> Higher calorie intake prevents unintended weight loss. Extra protein (1.5-2g/kg) helps counteract muscle catabolism. Calcium and Vitamin D are crucial as hyperthyroidism accelerates bone turnover. <em>Important:</em> Avoid excess iodine (seaweed, kelp supplements) as it can worsen the condition. Cruciferous vegetables (broccoli, cauliflower) have mild anti-thyroid properties and are generally beneficial. Work closely with your endocrinologist.</span>`,
+            `<strong>Schilddrüsenüberfunktion – erhöhter Stoffwechsel:</strong><br>
+            <span class="hint-effect">&#10132; Dein Grundumsatz wurde um 15 % erhöht (von ${Math.round(state.results.bmr / 1.15)} auf ${state.results.bmr} kcal).</span><br>
+            <span class="hint-effect">&#10132; Höhere Kalorien- und Proteinziele, um Muskelabbau zu verhindern.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Eine überaktive Schilddrüse überschwemmt deinen Körper mit T3/T4-Hormonen und beschleunigt den Stoffwechsel um 10–30 %. Unbehandelt führt das zu schnellem Gewichtsverlust, Muskelabbau und abnehmender Knochendichte. <em>Ernährungsstrategie:</em> Eine höhere Kalorienzufuhr verhindert ungewollten Gewichtsverlust. Zusätzliches Protein (1,5–2 g/kg) wirkt dem Muskelabbau entgegen. Calcium und Vitamin D sind entscheidend, da eine Überfunktion den Knochenumbau beschleunigt. <em>Wichtig:</em> Meide zu viel Jod (Algen, Kelp-Präparate), da es die Erkrankung verschlimmern kann. Kreuzblütlergemüse (Brokkoli, Blumenkohl) hat leicht schilddrüsenhemmende Eigenschaften und ist meist vorteilhaft. Arbeite eng mit deiner Endokrinologin bzw. deinem Endokrinologen zusammen.</span>`)
         });
     }
 
     if (p.umstaende.includes('diabetes')) {
         hints.push({
             icon: '&#128137;',
-            text: `<strong>Insulin Resistance / Diabetes - Your plan adjustments:</strong><br>
+            text: L(`<strong>Insulin Resistance / Diabetes - Your plan adjustments:</strong><br>
             <span class="hint-effect">&#10132; Carbs distributed evenly across all 3 meals (no carb-heavy single meals).</span><br>
             <span class="hint-effect">&#10132; Complex carbs only (whole grains, legumes). 5h meal gaps enforced.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Insulin resistance means your cells respond poorly to insulin, so your pancreas must produce more to clear blood sugar. Large carb loads worsen this - they spike blood sugar, requiring even more insulin. By spreading carbs evenly and choosing complex sources (low glycemic index), you create smaller, slower blood sugar rises. Eating protein first is especially important for you: protein triggers a small insulin response that "primes" your cells, making them more receptive when carbs arrive later in the meal. The 5-hour gap between meals allows insulin to return to baseline - this is when your body can switch to fat burning. Constant snacking keeps insulin perpetually elevated, worsening resistance over time.</span>`
+            <span class="hint-why"><strong>Why?</strong> Insulin resistance means your cells respond poorly to insulin, so your pancreas must produce more to clear blood sugar. Large carb loads worsen this - they spike blood sugar, requiring even more insulin. By spreading carbs evenly and choosing complex sources (low glycemic index), you create smaller, slower blood sugar rises. Eating protein first is especially important for you: protein triggers a small insulin response that "primes" your cells, making them more receptive when carbs arrive later in the meal. The 5-hour gap between meals allows insulin to return to baseline - this is when your body can switch to fat burning. Constant snacking keeps insulin perpetually elevated, worsening resistance over time.</span>`,
+            `<strong>Insulinresistenz / Diabetes – Anpassungen in deinem Plan:</strong><br>
+            <span class="hint-effect">&#10132; Kohlenhydrate gleichmäßig auf alle 3 Mahlzeiten verteilt (keine kohlenhydratlastigen Einzelmahlzeiten).</span><br>
+            <span class="hint-effect">&#10132; Nur komplexe Kohlenhydrate (Vollkorn, Hülsenfrüchte). 5-Stunden-Pausen zwischen den Mahlzeiten.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Bei Insulinresistenz reagieren deine Zellen schlecht auf Insulin, deshalb muss deine Bauchspeicheldrüse mehr davon bilden, um den Blutzucker zu senken. Große Kohlenhydratmengen verschlimmern das – sie lassen den Blutzucker stark ansteigen und erfordern noch mehr Insulin. Wenn du Kohlenhydrate gleichmäßig verteilst und komplexe Quellen (niedriger glykämischer Index) wählst, steigt dein Blutzucker langsamer und weniger stark an. Zuerst Protein zu essen ist für dich besonders wichtig: Protein löst eine kleine Insulinantwort aus, die deine Zellen „vorbereitet“, sodass sie empfänglicher sind, wenn später in der Mahlzeit die Kohlenhydrate kommen. Die 5-Stunden-Pause zwischen den Mahlzeiten lässt das Insulin auf den Ausgangswert zurückkehren – dann kann dein Körper auf Fettverbrennung umschalten. Ständiges Snacken hält das Insulin dauerhaft erhöht und verschlimmert die Resistenz mit der Zeit.</span>`)
         });
     }
 
     if (p.umstaende.includes('anemia')) {
         hints.push({
             icon: '&#129656;',
-            text: `<strong>Anemia / Iron Deficiency - Nutritional priorities:</strong><br>
+            text: L(`<strong>Anemia / Iron Deficiency - Nutritional priorities:</strong><br>
             <span class="hint-effect">&#10132; Focus on iron-rich foods paired with vitamin C for absorption.</span><br>
             <span class="hint-effect">&#10132; Avoid calcium, tea, and coffee with iron-rich meals.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Iron deficiency is the most common nutritional deficiency worldwide, affecting ~30% of women of reproductive age. Iron is essential for hemoglobin, which carries oxygen to your cells. Without sufficient iron, your body can't produce enough healthy red blood cells, causing fatigue, weakness, and reduced exercise capacity. <em>Two types of dietary iron:</em> Heme iron (red meat, organ meats, shellfish) is absorbed 2-3x better than non-heme iron (spinach, lentils, fortified cereals). Vitamin C (citrus, bell peppers) dramatically boosts non-heme iron absorption. Tannins in tea/coffee and calcium in dairy compete with iron absorption - separate them from iron-rich meals by 1-2 hours. Folate and B12 are also important for red blood cell production.</span>`
+            <span class="hint-why"><strong>Why?</strong> Iron deficiency is the most common nutritional deficiency worldwide, affecting ~30% of women of reproductive age. Iron is essential for hemoglobin, which carries oxygen to your cells. Without sufficient iron, your body can't produce enough healthy red blood cells, causing fatigue, weakness, and reduced exercise capacity. <em>Two types of dietary iron:</em> Heme iron (red meat, organ meats, shellfish) is absorbed 2-3x better than non-heme iron (spinach, lentils, fortified cereals). Vitamin C (citrus, bell peppers) dramatically boosts non-heme iron absorption. Tannins in tea/coffee and calcium in dairy compete with iron absorption - separate them from iron-rich meals by 1-2 hours. Folate and B12 are also important for red blood cell production.</span>`,
+            `<strong>Anämie / Eisenmangel – Ernährungsprioritäten:</strong><br>
+            <span class="hint-effect">&#10132; Fokus auf eisenreiche Lebensmittel, kombiniert mit Vitamin C für eine bessere Aufnahme.</span><br>
+            <span class="hint-effect">&#10132; Calcium, Tee und Kaffee nicht zu eisenreichen Mahlzeiten.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Eisenmangel ist weltweit der häufigste Nährstoffmangel und betrifft ca. 30 % der Frauen im gebärfähigen Alter. Eisen ist essenziell für Hämoglobin, das Sauerstoff zu deinen Zellen transportiert. Ohne ausreichend Eisen kann dein Körper nicht genug gesunde rote Blutkörperchen bilden – die Folgen sind Müdigkeit, Schwäche und geringere Belastbarkeit. <em>Zwei Arten von Nahrungseisen:</em> Häm-Eisen (rotes Fleisch, Innereien, Schalentiere) wird 2–3-mal besser aufgenommen als Nicht-Häm-Eisen (Spinat, Linsen, angereicherte Getreideprodukte). Vitamin C (Zitrusfrüchte, Paprika) steigert die Aufnahme von Nicht-Häm-Eisen deutlich. Gerbstoffe in Tee/Kaffee und Calcium in Milchprodukten konkurrieren mit der Eisenaufnahme – halte 1–2 Stunden Abstand zu eisenreichen Mahlzeiten. Auch Folat und B12 sind wichtig für die Bildung roter Blutkörperchen.</span>`)
         });
     }
 
     if (p.umstaende.includes('digestion')) {
         hints.push({
             icon: '&#129756;',
-            text: `<strong>Digestive Health / IBS - Fiber & gut strategy:</strong><br>
+            text: L(`<strong>Digestive Health / IBS - Fiber & gut strategy:</strong><br>
             <span class="hint-effect">&#10132; Fiber target increased to ${m.fiber.grams}g/day (vs. standard 30g).</span><br>
             <span class="hint-effect">&#10132; Emphasis on fermented foods and diverse fiber sources.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Your gut hosts ~100 trillion bacteria (the microbiome) that influence digestion, immunity, and even mood. Fiber is their primary food source - without it, they start breaking down your gut lining instead. There are two types: <em>soluble fiber</em> (oats, legumes, apples) forms a gel that slows digestion and feeds beneficial bacteria. <em>Insoluble fiber</em> (vegetables, whole grains) adds bulk and promotes regular bowel movements. Important: increase fiber gradually (5g more per week) to avoid bloating. The 5-hour gaps are therapeutic here - they trigger the "migrating motor complex" (MMC), a cleansing wave that sweeps through your intestines between meals, clearing debris. Constant eating suppresses this natural cleaning mechanism.</span>`
+            <span class="hint-why"><strong>Why?</strong> Your gut hosts ~100 trillion bacteria (the microbiome) that influence digestion, immunity, and even mood. Fiber is their primary food source - without it, they start breaking down your gut lining instead. There are two types: <em>soluble fiber</em> (oats, legumes, apples) forms a gel that slows digestion and feeds beneficial bacteria. <em>Insoluble fiber</em> (vegetables, whole grains) adds bulk and promotes regular bowel movements. Important: increase fiber gradually (5g more per week) to avoid bloating. The 5-hour gaps are therapeutic here - they trigger the "migrating motor complex" (MMC), a cleansing wave that sweeps through your intestines between meals, clearing debris. Constant eating suppresses this natural cleaning mechanism.</span>`,
+            `<strong>Verdauungsgesundheit / Reizdarm – Ballaststoffe & Darmstrategie:</strong><br>
+            <span class="hint-effect">&#10132; Ballaststoffziel auf ${m.fiber.grams}g/Tag erhöht (statt standardmäßig 30 g).</span><br>
+            <span class="hint-effect">&#10132; Schwerpunkt auf fermentierten Lebensmitteln und vielfältigen Ballaststoffquellen.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> In deinem Darm leben ca. 100 Billionen Bakterien (das Mikrobiom), die Verdauung, Immunsystem und sogar die Stimmung beeinflussen. Ballaststoffe sind ihre wichtigste Nahrung – ohne sie beginnen sie stattdessen, deine Darmschleimhaut abzubauen. Es gibt zwei Arten: <em>Lösliche Ballaststoffe</em> (Haferflocken, Hülsenfrüchte, Äpfel) bilden ein Gel, das die Verdauung verlangsamt und nützliche Bakterien ernährt. <em>Unlösliche Ballaststoffe</em> (Gemüse, Vollkorn) sorgen für Volumen und eine regelmäßige Verdauung. Wichtig: Steigere die Ballaststoffe langsam (5 g mehr pro Woche), um Blähungen zu vermeiden. Die 5-Stunden-Pausen wirken hier therapeutisch – sie lösen den „migrierenden motorischen Komplex“ (MMC) aus, eine Reinigungswelle, die zwischen den Mahlzeiten durch deinen Darm läuft und Reste beseitigt. Ständiges Essen unterdrückt diesen natürlichen Reinigungsmechanismus.</span>`)
         });
     }
 
     if (p.umstaende.includes('autoimmune')) {
         hints.push({
             icon: '&#129516;',
-            text: `<strong>Autoimmune / Chronic Inflammation - Anti-inflammatory nutrition:</strong><br>
+            text: L(`<strong>Autoimmune / Chronic Inflammation - Anti-inflammatory nutrition:</strong><br>
             <span class="hint-effect">&#10132; TDEE reduced by ~7% (elevated resting metabolism offset by reduced activity).</span><br>
             <span class="hint-effect">&#10132; Emphasis on omega-3 fatty acids and anti-inflammatory foods.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Autoimmune conditions cause chronic systemic inflammation, where your immune system attacks healthy tissue. While inflammation slightly raises BMR (the body burns energy fighting itself), physical activity often decreases, resulting in a net lower TDEE. <em>Anti-inflammatory nutrition:</em> Omega-3 fatty acids (2-3g/day from fatty fish, flaxseed, walnuts) directly reduce inflammatory markers (IL-6, TNF-alpha). Vitamin D (1000-2000 IU/day) modulates immune function - deficiency is extremely common in autoimmune patients. Antioxidant-rich foods (berries, leafy greens, turmeric) help neutralize oxidative stress. Reducing refined carbohydrates and processed foods can lower systemic inflammation. Some patients benefit from identifying food triggers (common: gluten, dairy) with guidance from their healthcare provider.</span>`
+            <span class="hint-why"><strong>Why?</strong> Autoimmune conditions cause chronic systemic inflammation, where your immune system attacks healthy tissue. While inflammation slightly raises BMR (the body burns energy fighting itself), physical activity often decreases, resulting in a net lower TDEE. <em>Anti-inflammatory nutrition:</em> Omega-3 fatty acids (2-3g/day from fatty fish, flaxseed, walnuts) directly reduce inflammatory markers (IL-6, TNF-alpha). Vitamin D (1000-2000 IU/day) modulates immune function - deficiency is extremely common in autoimmune patients. Antioxidant-rich foods (berries, leafy greens, turmeric) help neutralize oxidative stress. Reducing refined carbohydrates and processed foods can lower systemic inflammation. Some patients benefit from identifying food triggers (common: gluten, dairy) with guidance from their healthcare provider.</span>`,
+            `<strong>Autoimmunerkrankung / chronische Entzündung – entzündungshemmende Ernährung:</strong><br>
+            <span class="hint-effect">&#10132; TDEE um ca. 7 % reduziert (erhöhter Ruheumsatz, ausgeglichen durch geringere Aktivität).</span><br>
+            <span class="hint-effect">&#10132; Schwerpunkt auf Omega-3-Fettsäuren und entzündungshemmenden Lebensmitteln.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Autoimmunerkrankungen verursachen eine chronische, den ganzen Körper betreffende Entzündung, bei der dein Immunsystem gesundes Gewebe angreift. Die Entzündung erhöht den Grundumsatz zwar leicht (der Körper verbraucht Energie im Kampf gegen sich selbst), doch die körperliche Aktivität nimmt oft ab, sodass der TDEE unterm Strich niedriger ist. <em>Entzündungshemmende Ernährung:</em> Omega-3-Fettsäuren (2–3 g/Tag aus fettem Fisch, Leinsamen, Walnüssen) senken Entzündungsmarker (IL-6, TNF-alpha) direkt. Vitamin D (1000–2000 IE/Tag) moduliert die Immunfunktion – ein Mangel ist bei Autoimmunerkrankten sehr häufig. Antioxidantienreiche Lebensmittel (Beeren, Blattgemüse, Kurkuma) helfen, oxidativen Stress zu neutralisieren. Weniger raffinierte Kohlenhydrate und verarbeitete Lebensmittel können systemische Entzündungen senken. Manche Betroffene profitieren davon, mit ärztlicher Begleitung individuelle Auslöser zu finden (häufig: Gluten, Milchprodukte).</span>`)
         });
     }
 
     if (p.umstaende.includes('stress')) {
         hints.push({
             icon: '&#128164;',
-            text: `<strong>High Stress - Cortisol & nutrition:</strong><br>
+            text: L(`<strong>High Stress - Cortisol & nutrition:</strong><br>
             <span class="hint-effect">&#10132; BMR reduced by 3% (stress-induced metabolic adaptation).</span><br>
             <span class="hint-effect">&#10132; Focus on magnesium, B-vitamins, and blood-sugar-stabilizing meals.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Chronic stress elevates cortisol, your primary stress hormone. Elevated cortisol has several effects: (1) it promotes abdominal fat storage, (2) it increases appetite and cravings for high-calorie foods, (3) it can break down muscle tissue for energy (catabolic), and (4) it can reduce your metabolic rate over time. <em>Nutritional counter-strategy:</em> Magnesium (found in nuts, spinach, dark chocolate) is nature's relaxation mineral - it calms the nervous system and is depleted faster under stress. B-vitamins (whole grains, eggs, legumes) support neurotransmitter production. Regular, balanced meals prevent the blood sugar crashes that trigger additional cortisol release. A structured 3-meal approach with 5h gaps provides stable energy without the stress of constant meal decisions.</span>`
+            <span class="hint-why"><strong>Why?</strong> Chronic stress elevates cortisol, your primary stress hormone. Elevated cortisol has several effects: (1) it promotes abdominal fat storage, (2) it increases appetite and cravings for high-calorie foods, (3) it can break down muscle tissue for energy (catabolic), and (4) it can reduce your metabolic rate over time. <em>Nutritional counter-strategy:</em> Magnesium (found in nuts, spinach, dark chocolate) is nature's relaxation mineral - it calms the nervous system and is depleted faster under stress. B-vitamins (whole grains, eggs, legumes) support neurotransmitter production. Regular, balanced meals prevent the blood sugar crashes that trigger additional cortisol release. A structured 3-meal approach with 5h gaps provides stable energy without the stress of constant meal decisions.</span>`,
+            `<strong>Hoher Stress – Cortisol & Ernährung:</strong><br>
+            <span class="hint-effect">&#10132; Grundumsatz um 3 % reduziert (stressbedingte Stoffwechselanpassung).</span><br>
+            <span class="hint-effect">&#10132; Fokus auf Magnesium, B-Vitamine und blutzuckerstabilisierende Mahlzeiten.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Chronischer Stress erhöht Cortisol, dein wichtigstes Stresshormon. Ein erhöhter Cortisolspiegel hat mehrere Effekte: (1) Er fördert die Fetteinlagerung am Bauch, (2) er steigert Appetit und Heißhunger auf kalorienreiche Lebensmittel, (3) er kann Muskelgewebe zur Energiegewinnung abbauen (katabol) und (4) er kann deinen Stoffwechsel mit der Zeit verlangsamen. <em>Ernährungsstrategie dagegen:</em> Magnesium (in Nüssen, Spinat, Zartbitterschokolade) ist das Entspannungsmineral der Natur – es beruhigt das Nervensystem und wird unter Stress schneller verbraucht. B-Vitamine (Vollkorn, Eier, Hülsenfrüchte) unterstützen die Bildung von Neurotransmittern. Regelmäßige, ausgewogene Mahlzeiten verhindern Blutzuckerabstürze, die zusätzlich Cortisol freisetzen. Eine feste Struktur mit 3 Mahlzeiten und 5-Stunden-Pausen gibt dir stabile Energie, ohne den Stress ständiger Essensentscheidungen.</span>`)
         });
     }
 
     if (p.umstaende.includes('depression')) {
         hints.push({
             icon: '&#128546;',
-            text: `<strong>Depression (on medication) - Metabolic & nutritional impact:</strong><br>
+            text: L(`<strong>Depression (on medication) - Metabolic & nutritional impact:</strong><br>
             <span class="hint-effect">&#10132; BMR reduced by 4% (medication-related metabolic adjustment).</span><br>
             <span class="hint-effect">&#10132; Focus on omega-3, magnesium, and B-vitamins for mood support.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Many antidepressants (SSRIs, SNRIs, atypical antipsychotics) can cause weight gain of 2-10 kg over months through metabolic changes and increased appetite. We adjust your BMR down by 4% to account for this. <em>Nutritional support for mental health:</em> Omega-3 fatty acids (1-2g/day EPA from fatty fish) have evidence for anti-depressant effects. Magnesium (400 mg/day - nuts, dark chocolate, leafy greens) is often depleted and affects mood regulation. B-vitamins (especially B6, B12, folate) are essential for neurotransmitter synthesis (serotonin, dopamine). Tryptophan-rich foods (turkey, eggs, cheese, nuts) provide the precursor for serotonin. Regular meal timing helps stabilize energy and mood throughout the day.</span>`
+            <span class="hint-why"><strong>Why?</strong> Many antidepressants (SSRIs, SNRIs, atypical antipsychotics) can cause weight gain of 2-10 kg over months through metabolic changes and increased appetite. We adjust your BMR down by 4% to account for this. <em>Nutritional support for mental health:</em> Omega-3 fatty acids (1-2g/day EPA from fatty fish) have evidence for anti-depressant effects. Magnesium (400 mg/day - nuts, dark chocolate, leafy greens) is often depleted and affects mood regulation. B-vitamins (especially B6, B12, folate) are essential for neurotransmitter synthesis (serotonin, dopamine). Tryptophan-rich foods (turkey, eggs, cheese, nuts) provide the precursor for serotonin. Regular meal timing helps stabilize energy and mood throughout the day.</span>`,
+            `<strong>Depression (mit Medikamenten) – Einfluss auf Stoffwechsel & Ernährung:</strong><br>
+            <span class="hint-effect">&#10132; Grundumsatz um 4 % reduziert (medikamentenbedingte Stoffwechselanpassung).</span><br>
+            <span class="hint-effect">&#10132; Fokus auf Omega-3, Magnesium und B-Vitamine zur Unterstützung der Stimmung.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Viele Antidepressiva (SSRI, SNRI, atypische Antipsychotika) können über Monate eine Gewichtszunahme von 2–10 kg verursachen – durch Stoffwechselveränderungen und mehr Appetit. Wir senken deinen Grundumsatz deshalb um 4 %. <em>Ernährung für die mentale Gesundheit:</em> Für Omega-3-Fettsäuren (1–2 g/Tag EPA aus fettem Fisch) gibt es Hinweise auf eine antidepressive Wirkung. Magnesium (400 mg/Tag – Nüsse, Zartbitterschokolade, Blattgemüse) ist oft erschöpft und beeinflusst die Stimmungsregulation. B-Vitamine (besonders B6, B12, Folat) sind essenziell für die Bildung von Neurotransmittern (Serotonin, Dopamin). Tryptophanreiche Lebensmittel (Pute, Eier, Käse, Nüsse) liefern die Vorstufe von Serotonin. Regelmäßige Essenszeiten helfen, Energie und Stimmung über den Tag zu stabilisieren.</span>`)
         });
     }
 
     if (p.umstaende.includes('recovery')) {
         hints.push({
             icon: '&#129657;',
-            text: `<strong>Recovery from Surgery / Injury - Healing nutrition:</strong><br>
+            text: L(`<strong>Recovery from Surgery / Injury - Healing nutrition:</strong><br>
             <span class="hint-effect">&#10132; BMR increased by 17% (elevated energy demands for tissue repair).</span><br>
             <span class="hint-effect">&#10132; Protein raised to ${m.protein.grams}g/day (1.8g/kg) for wound healing.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Your body's metabolic rate increases significantly during recovery - minor surgery adds 10-15%, major surgery or fractures 20-30%. This energy fuels tissue repair, immune function, and inflammation management. <em>Critical healing nutrients:</em> Protein (1.5-2.0 g/kg/day) provides amino acids for rebuilding tissue and collagen. Vitamin C (500-1000 mg/day from citrus, bell peppers, kiwi) is essential for collagen synthesis - without it, wounds simply cannot heal properly. Zinc (15-40 mg/day from pumpkin seeds, beef, lentils) supports immune function and cell division. Iron supports oxygen delivery to healing tissues. Do not restrict calories during recovery - inadequate nutrition significantly delays healing and increases infection risk.</span>`
+            <span class="hint-why"><strong>Why?</strong> Your body's metabolic rate increases significantly during recovery - minor surgery adds 10-15%, major surgery or fractures 20-30%. This energy fuels tissue repair, immune function, and inflammation management. <em>Critical healing nutrients:</em> Protein (1.5-2.0 g/kg/day) provides amino acids for rebuilding tissue and collagen. Vitamin C (500-1000 mg/day from citrus, bell peppers, kiwi) is essential for collagen synthesis - without it, wounds simply cannot heal properly. Zinc (15-40 mg/day from pumpkin seeds, beef, lentils) supports immune function and cell division. Iron supports oxygen delivery to healing tissues. Do not restrict calories during recovery - inadequate nutrition significantly delays healing and increases infection risk.</span>`,
+            `<strong>Erholung nach OP / Verletzung – Ernährung für die Heilung:</strong><br>
+            <span class="hint-effect">&#10132; Grundumsatz um 17 % erhöht (höherer Energiebedarf für die Gewebereparatur).</span><br>
+            <span class="hint-effect">&#10132; Protein auf ${m.protein.grams}g/Tag erhöht (1,8 g/kg) für die Wundheilung.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Dein Stoffwechsel steigt während der Genesung deutlich an – kleine Operationen um 10–15 %, große Operationen oder Knochenbrüche um 20–30 %. Diese Energie treibt Gewebereparatur, Immunfunktion und die Steuerung von Entzündungen an. <em>Entscheidende Nährstoffe für die Heilung:</em> Protein (1,5–2,0 g/kg/Tag) liefert Aminosäuren zum Wiederaufbau von Gewebe und Kollagen. Vitamin C (500–1000 mg/Tag aus Zitrusfrüchten, Paprika, Kiwi) ist essenziell für die Kollagenbildung – ohne es können Wunden schlicht nicht richtig heilen. Zink (15–40 mg/Tag aus Kürbiskernen, Rindfleisch, Linsen) unterstützt Immunfunktion und Zellteilung. Eisen unterstützt die Sauerstoffversorgung des heilenden Gewebes. Schränke während der Genesung keine Kalorien ein – unzureichende Ernährung verzögert die Heilung deutlich und erhöht das Infektionsrisiko.</span>`)
         });
     }
 
     if (p.umstaende.includes('edrecovery')) {
         hints.push({
             icon: '&#128154;',
-            text: `<strong>Eating Disorder Recovery - Safety-first approach:</strong><br>
+            text: L(`<strong>Eating Disorder Recovery - Safety-first approach:</strong><br>
             <span class="hint-effect">&#10132; Caloric deficit has been disabled. Your plan will never suggest eating below maintenance.</span><br>
             <span class="hint-effect">&#10132; Balanced macros with no food group restrictions.</span><br>
-            <span class="hint-why"><strong>Why?</strong> During ED recovery, calorie-counting apps can be triggering and potentially harmful. We've disabled any deficit recommendations as a safety measure. During recovery from restrictive eating, the body often enters a hypermetabolic state where caloric needs can be 50-100% above calculated BMR due to elevated diet-induced thermogenesis - your body is working overtime to repair. <em>Important principles:</em> No food should be labeled as "bad" or restricted. All macronutrients are essential. Gradual caloric increases help prevent refeeding syndrome (monitor phosphorus, magnesium, potassium). This app is a tool, not a treatment - please work closely with a healthcare team (therapist, dietitian, physician) specialized in eating disorders. If calorie tracking feels triggering, it's okay to step away from tracking entirely.</span>`
+            <span class="hint-why"><strong>Why?</strong> During ED recovery, calorie-counting apps can be triggering and potentially harmful. We've disabled any deficit recommendations as a safety measure. During recovery from restrictive eating, the body often enters a hypermetabolic state where caloric needs can be 50-100% above calculated BMR due to elevated diet-induced thermogenesis - your body is working overtime to repair. <em>Important principles:</em> No food should be labeled as "bad" or restricted. All macronutrients are essential. Gradual caloric increases help prevent refeeding syndrome (monitor phosphorus, magnesium, potassium). This app is a tool, not a treatment - please work closely with a healthcare team (therapist, dietitian, physician) specialized in eating disorders. If calorie tracking feels triggering, it's okay to step away from tracking entirely.</span>`,
+            `<strong>Genesung von einer Essstörung – Sicherheit zuerst:</strong><br>
+            <span class="hint-effect">&#10132; Das Kaloriendefizit wurde deaktiviert. Dein Plan schlägt nie vor, unter deinem Erhaltungsbedarf zu essen.</span><br>
+            <span class="hint-effect">&#10132; Ausgewogene Makros ohne Einschränkung von Lebensmittelgruppen.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> In der Genesung von einer Essstörung können Kalorienzähl-Apps triggern und potenziell schaden. Wir haben deshalb jede Defizit-Empfehlung als Schutzmaßnahme deaktiviert. Bei der Genesung von restriktivem Essverhalten gerät der Körper oft in einen hypermetabolen Zustand, in dem der Kalorienbedarf durch eine erhöhte nahrungsinduzierte Thermogenese 50–100 % über dem berechneten Grundumsatz liegen kann – dein Körper arbeitet auf Hochtouren an der Reparatur. <em>Wichtige Grundsätze:</em> Kein Lebensmittel sollte als „schlecht“ gelten oder verboten sein. Alle Makronährstoffe sind essenziell. Eine schrittweise Steigerung der Kalorien hilft, ein Refeeding-Syndrom zu verhindern (Phosphor, Magnesium und Kalium überwachen). Diese App ist ein Werkzeug, keine Behandlung – bitte arbeite eng mit einem auf Essstörungen spezialisierten Behandlungsteam zusammen (Therapie, Ernährungsberatung, ärztliche Betreuung). Wenn sich Kalorientracking triggernd anfühlt, ist es völlig in Ordnung, ganz darauf zu verzichten.</span>`)
         });
     }
 
@@ -1295,38 +1400,52 @@ function renderHints() {
     if (p.sportarten.includes('strength')) {
         hints.push({
             icon: '&#127947;',
-            text: `<strong>Strength Training - Protein timing & muscle science:</strong><br>
+            text: L(`<strong>Strength Training - Protein timing & muscle science:</strong><br>
             <span class="hint-effect">&#10132; Protein: ${m.protein.grams}g/day (~${(m.protein.grams/3).toFixed(0)}g per meal across 3 meals).</span><br>
             <span class="hint-effect">&#10132; Each meal prioritizes a protein source first (Rule #3).</span><br>
-            <span class="hint-why"><strong>Why?</strong> After strength training, your muscle fibers have micro-tears that need repair. This repair process (muscle protein synthesis, or MPS) requires amino acids from dietary protein. Research shows MPS is maximized at ~0.4g protein per kg per meal, which is why we distribute your ${m.protein.grams}g evenly across 3 meals (~${(m.protein.grams/3).toFixed(0)}g each) rather than loading one meal. MPS stays elevated for 24-48 hours after training, so consistent daily protein matters more than a single post-workout shake. The leucine threshold (~2.5-3g) is key - it's the amino acid that "triggers" MPS. Animal proteins (eggs, dairy, meat, fish) are leucine-rich; plant sources may need larger portions to hit this threshold.</span>`
+            <span class="hint-why"><strong>Why?</strong> After strength training, your muscle fibers have micro-tears that need repair. This repair process (muscle protein synthesis, or MPS) requires amino acids from dietary protein. Research shows MPS is maximized at ~0.4g protein per kg per meal, which is why we distribute your ${m.protein.grams}g evenly across 3 meals (~${(m.protein.grams/3).toFixed(0)}g each) rather than loading one meal. MPS stays elevated for 24-48 hours after training, so consistent daily protein matters more than a single post-workout shake. The leucine threshold (~2.5-3g) is key - it's the amino acid that "triggers" MPS. Animal proteins (eggs, dairy, meat, fish) are leucine-rich; plant sources may need larger portions to hit this threshold.</span>`,
+            `<strong>Krafttraining – Protein-Timing & Muskelwissenschaft:</strong><br>
+            <span class="hint-effect">&#10132; Protein: ${m.protein.grams}g/Tag (ca. ${(m.protein.grams/3).toFixed(0)}g pro Mahlzeit bei 3 Mahlzeiten).</span><br>
+            <span class="hint-effect">&#10132; Jede Mahlzeit beginnt mit einer Proteinquelle (Regel Nr. 3).</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Nach dem Krafttraining haben deine Muskelfasern Mikrorisse, die repariert werden müssen. Dieser Reparaturprozess (Muskelproteinsynthese, MPS) braucht Aminosäuren aus Nahrungsprotein. Studien zeigen, dass die MPS bei ca. 0,4 g Protein pro kg pro Mahlzeit maximal ist – deshalb verteilen wir deine ${m.protein.grams}g gleichmäßig auf 3 Mahlzeiten (je ca. ${(m.protein.grams/3).toFixed(0)}g), statt eine Mahlzeit zu überladen. Die MPS bleibt 24–48 Stunden nach dem Training erhöht, daher ist eine gleichmäßige tägliche Proteinzufuhr wichtiger als ein einzelner Shake nach dem Training. Entscheidend ist die Leucin-Schwelle (ca. 2,5–3 g) – Leucin ist die Aminosäure, die die MPS „auslöst“. Tierische Proteine (Eier, Milchprodukte, Fleisch, Fisch) sind leucinreich; bei pflanzlichen Quellen brauchst du eventuell größere Portionen, um diese Schwelle zu erreichen.</span>`)
         });
     }
 
     if (p.sportarten.includes('cardio')) {
         hints.push({
             icon: '&#127939;',
-            text: `<strong>Cardio / Endurance - Fueling your training:</strong><br>
+            text: L(`<strong>Cardio / Endurance - Fueling your training:</strong><br>
             <span class="hint-effect">&#10132; Carbohydrate intake: ${m.carbs.grams}g/day for glycogen replenishment.</span><br>
             <span class="hint-effect">&#10132; Pre-training meal should include complex carbs.</span><br>
-            <span class="hint-why"><strong>Why?</strong> During cardio, your primary fuel sources are muscle glycogen (stored carbohydrates) and fat. At moderate intensity, your body uses roughly a 50/50 mix. Your muscles can store ~300-500g of glycogen, and depleted stores lead to fatigue ("hitting the wall"). Carbohydrates before training top off glycogen stores. For sessions under 60 minutes, your normal meal plan provides sufficient fuel - just ensure you eat 2-3 hours before. For longer sessions, consider placing your carb-heaviest meal before training. Interestingly, maintaining 5-hour gaps between meals trains your body to be more efficient at fat oxidation - this actually improves your endurance capacity over time.</span>`
+            <span class="hint-why"><strong>Why?</strong> During cardio, your primary fuel sources are muscle glycogen (stored carbohydrates) and fat. At moderate intensity, your body uses roughly a 50/50 mix. Your muscles can store ~300-500g of glycogen, and depleted stores lead to fatigue ("hitting the wall"). Carbohydrates before training top off glycogen stores. For sessions under 60 minutes, your normal meal plan provides sufficient fuel - just ensure you eat 2-3 hours before. For longer sessions, consider placing your carb-heaviest meal before training. Interestingly, maintaining 5-hour gaps between meals trains your body to be more efficient at fat oxidation - this actually improves your endurance capacity over time.</span>`,
+            `<strong>Cardio / Ausdauer – Energie für dein Training:</strong><br>
+            <span class="hint-effect">&#10132; Kohlenhydratzufuhr: ${m.carbs.grams}g/Tag zum Auffüllen der Glykogenspeicher.</span><br>
+            <span class="hint-effect">&#10132; Die Mahlzeit vor dem Training sollte komplexe Kohlenhydrate enthalten.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Beim Cardio sind deine wichtigsten Energiequellen Muskelglykogen (gespeicherte Kohlenhydrate) und Fett. Bei moderater Intensität nutzt dein Körper etwa eine 50/50-Mischung. Deine Muskeln können ca. 300–500 g Glykogen speichern; leere Speicher führen zu Erschöpfung („der Mann mit dem Hammer“). Kohlenhydrate vor dem Training füllen die Glykogenspeicher auf. Für Einheiten unter 60 Minuten liefert dein normaler Plan genug Energie – iss einfach 2–3 Stunden vorher. Bei längeren Einheiten lege deine kohlenhydratreichste Mahlzeit vor das Training. Interessanterweise trainieren die 5-Stunden-Pausen zwischen den Mahlzeiten deinen Körper darauf, Fett effizienter zu verbrennen – das verbessert mit der Zeit sogar deine Ausdauer.</span>`)
         });
     }
 
     if (p.sportarten.includes('yoga')) {
         hints.push({
             icon: '&#129496;',
-            text: `<strong>Yoga / Pilates - Mindful nutrition synergy:</strong><br>
+            text: L(`<strong>Yoga / Pilates - Mindful nutrition synergy:</strong><br>
             <span class="hint-effect">&#10132; Light, nutrient-dense meals that don't weigh you down.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Yoga and Pilates emphasize body awareness - and this extends to eating. This aligns beautifully with evidence-based nutrition: mindful eating (starting with protein, eating slowly) enhances the parasympathetic "rest and digest" state. Magnesium-rich foods (nuts, leafy greens) support flexibility by helping muscles relax after contraction. Adequate hydration is especially important - even mild dehydration (2%) reduces flexibility and balance. Practice on a mostly empty stomach for best results (2-3h after eating).</span>`
+            <span class="hint-why"><strong>Why?</strong> Yoga and Pilates emphasize body awareness - and this extends to eating. This aligns beautifully with evidence-based nutrition: mindful eating (starting with protein, eating slowly) enhances the parasympathetic "rest and digest" state. Magnesium-rich foods (nuts, leafy greens) support flexibility by helping muscles relax after contraction. Adequate hydration is especially important - even mild dehydration (2%) reduces flexibility and balance. Practice on a mostly empty stomach for best results (2-3h after eating).</span>`,
+            `<strong>Yoga / Pilates – Synergie mit achtsamer Ernährung:</strong><br>
+            <span class="hint-effect">&#10132; Leichte, nährstoffreiche Mahlzeiten, die dich nicht beschweren.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Yoga und Pilates schulen die Körperwahrnehmung – und das gilt auch fürs Essen. Das passt wunderbar zu evidenzbasierter Ernährung: Achtsames Essen (mit Protein beginnen, langsam essen) stärkt den parasympathischen „Ruhe und Verdauung“-Zustand. Magnesiumreiche Lebensmittel (Nüsse, Blattgemüse) unterstützen die Beweglichkeit, indem sie den Muskeln helfen, sich nach der Anspannung zu entspannen. Ausreichend trinken ist besonders wichtig – schon leichte Dehydrierung (2 %) verringert Beweglichkeit und Gleichgewicht. Übe am besten mit weitgehend leerem Magen (2–3 Stunden nach dem Essen).</span>`)
         });
     }
 
     if (p.sportarten.includes('swimming')) {
         hints.push({
             icon: '&#127946;',
-            text: `<strong>Swimming - Full-body demands:</strong><br>
+            text: L(`<strong>Swimming - Full-body demands:</strong><br>
             <span class="hint-effect">&#10132; Higher caloric needs due to thermoregulation in water.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Swimming burns more calories than many other activities because water conducts heat ~25x faster than air - your body works harder to maintain core temperature. This means swimmers often have slightly higher energy needs than the activity level alone suggests. Post-swim hunger is very real and physiological, not just psychological. Ensure adequate protein for the full-body muscle engagement and sufficient carbs if swimming for more than 45 minutes. Eat within 1-2 hours after swimming for optimal recovery.</span>`
+            <span class="hint-why"><strong>Why?</strong> Swimming burns more calories than many other activities because water conducts heat ~25x faster than air - your body works harder to maintain core temperature. This means swimmers often have slightly higher energy needs than the activity level alone suggests. Post-swim hunger is very real and physiological, not just psychological. Ensure adequate protein for the full-body muscle engagement and sufficient carbs if swimming for more than 45 minutes. Eat within 1-2 hours after swimming for optimal recovery.</span>`,
+            `<strong>Schwimmen – Anforderungen an den ganzen Körper:</strong><br>
+            <span class="hint-effect">&#10132; Höherer Kalorienbedarf durch die Wärmeregulation im Wasser.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Schwimmen verbrennt mehr Kalorien als viele andere Aktivitäten, weil Wasser Wärme ca. 25-mal schneller ableitet als Luft – dein Körper arbeitet härter, um seine Kerntemperatur zu halten. Schwimmerinnen und Schwimmer haben deshalb oft einen etwas höheren Energiebedarf, als das Aktivitätsniveau allein vermuten lässt. Der Hunger nach dem Schwimmen ist echt und körperlich bedingt, nicht nur psychisch. Achte auf genug Protein für die Ganzkörper-Muskelarbeit und auf ausreichend Kohlenhydrate, wenn du länger als 45 Minuten schwimmst. Iss innerhalb von 1–2 Stunden nach dem Schwimmen für eine optimale Regeneration.</span>`)
         });
     }
 
@@ -1335,37 +1454,50 @@ function renderHints() {
     if (p.allergien.includes('lactose')) {
         hints.push({
             icon: '&#129371;',
-            text: `<strong>Lactose Intolerance - Calcium strategy:</strong><br>
+            text: L(`<strong>Lactose Intolerance - Calcium strategy:</strong><br>
             <span class="hint-effect">&#10132; Dairy-based proteins replaced with lactose-free alternatives where possible.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Lactose intolerance means your body produces insufficient lactase, the enzyme that breaks down lactose (milk sugar). Undigested lactose ferments in the colon, causing gas, bloating, and discomfort. <em>Important:</em> You still need calcium (~1000mg/day). Non-dairy sources: broccoli (47mg/100g), almonds (264mg/100g), kale (150mg/100g), canned sardines with bones (382mg/100g). Note: fermented dairy (yogurt, aged cheese) is often tolerated because bacteria pre-digest much of the lactose. Harzer cheese is virtually lactose-free despite being dairy.</span>`
+            <span class="hint-why"><strong>Why?</strong> Lactose intolerance means your body produces insufficient lactase, the enzyme that breaks down lactose (milk sugar). Undigested lactose ferments in the colon, causing gas, bloating, and discomfort. <em>Important:</em> You still need calcium (~1000mg/day). Non-dairy sources: broccoli (47mg/100g), almonds (264mg/100g), kale (150mg/100g), canned sardines with bones (382mg/100g). Note: fermented dairy (yogurt, aged cheese) is often tolerated because bacteria pre-digest much of the lactose. Harzer cheese is virtually lactose-free despite being dairy.</span>`,
+            `<strong>Laktoseintoleranz – Calcium-Strategie:</strong><br>
+            <span class="hint-effect">&#10132; Milchbasierte Proteine wo möglich durch laktosefreie Alternativen ersetzt.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Bei Laktoseintoleranz bildet dein Körper zu wenig Laktase, das Enzym, das Laktose (Milchzucker) spaltet. Unverdaute Laktose gärt im Dickdarm und verursacht Gase, Blähungen und Beschwerden. <em>Wichtig:</em> Du brauchst trotzdem Calcium (ca. 1000 mg/Tag). Milchfreie Quellen: Brokkoli (47 mg/100 g), Mandeln (264 mg/100 g), Grünkohl (150 mg/100 g), Sardinen aus der Dose mit Gräten (382 mg/100 g). Hinweis: Fermentierte Milchprodukte (Joghurt, gereifter Käse) werden oft vertragen, weil Bakterien einen Großteil der Laktose bereits abgebaut haben. Harzer Käse ist praktisch laktosefrei, obwohl er ein Milchprodukt ist.</span>`)
         });
     }
 
     if (p.allergien.includes('gluten')) {
         hints.push({
             icon: '&#127838;',
-            text: `<strong>Gluten Intolerance - Carb alternatives:</strong><br>
+            text: L(`<strong>Gluten Intolerance - Carb alternatives:</strong><br>
             <span class="hint-effect">&#10132; Wheat, rye, barley, and spelt removed from carb sources.</span><br>
             <span class="hint-effect">&#10132; Plan uses: rice, potatoes, quinoa, buckwheat, millet, corn.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Gluten is a protein found in wheat, rye, and barley that triggers an immune response in sensitive individuals, damaging the small intestine's villi (absorptive surface). This impairs nutrient absorption - iron, calcium, B12, and folate deficiencies are common. The good news: many naturally gluten-free grains are nutritionally superior. Quinoa has more protein than wheat. Buckwheat (despite the name, not wheat!) is rich in rutin, which strengthens blood vessels. Oats are naturally gluten-free but often cross-contaminated - look for certified GF oats if you tolerate them.</span>`
+            <span class="hint-why"><strong>Why?</strong> Gluten is a protein found in wheat, rye, and barley that triggers an immune response in sensitive individuals, damaging the small intestine's villi (absorptive surface). This impairs nutrient absorption - iron, calcium, B12, and folate deficiencies are common. The good news: many naturally gluten-free grains are nutritionally superior. Quinoa has more protein than wheat. Buckwheat (despite the name, not wheat!) is rich in rutin, which strengthens blood vessels. Oats are naturally gluten-free but often cross-contaminated - look for certified GF oats if you tolerate them.</span>`,
+            `<strong>Glutenunverträglichkeit – Kohlenhydrat-Alternativen:</strong><br>
+            <span class="hint-effect">&#10132; Weizen, Roggen, Gerste und Dinkel aus den Kohlenhydratquellen entfernt.</span><br>
+            <span class="hint-effect">&#10132; Der Plan nutzt: Reis, Kartoffeln, Quinoa, Buchweizen, Hirse, Mais.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Gluten ist ein Protein in Weizen, Roggen und Gerste, das bei empfindlichen Menschen eine Immunreaktion auslöst und die Zotten des Dünndarms (die Aufnahmefläche) schädigt. Das beeinträchtigt die Nährstoffaufnahme – Mängel an Eisen, Calcium, B12 und Folat sind häufig. Die gute Nachricht: Viele von Natur aus glutenfreie Getreide sind ernährungsphysiologisch sogar überlegen. Quinoa enthält mehr Protein als Weizen. Buchweizen (trotz des Namens kein Weizen!) ist reich an Rutin, das die Blutgefäße stärkt. Hafer ist von Natur aus glutenfrei, aber oft verunreinigt – greif zu zertifiziert glutenfreiem Hafer, wenn du ihn verträgst.</span>`)
         });
     }
 
     if (p.allergien.includes('fructose')) {
         hints.push({
             icon: '&#127815;',
-            text: `<strong>Fructose Intolerance - Fruit selection matters:</strong><br>
+            text: L(`<strong>Fructose Intolerance - Fruit selection matters:</strong><br>
             <span class="hint-effect">&#10132; Low-fructose fruits preferred (berries, kiwi, citrus).</span><br>
-            <span class="hint-why"><strong>Why?</strong> Fructose malabsorption means your small intestine struggles to absorb fructose efficiently. When excess fructose reaches the colon, bacteria ferment it, causing bloating and discomfort. Key insight: the fructose-to-glucose ratio matters more than total fructose. Foods with equal or more glucose than fructose are better tolerated because glucose aids fructose absorption. Berries, kiwi, and bananas have favorable ratios. Apples, pears, and mangoes are high in excess fructose. The "apple a day" recommendation can be adapted - substitute with a banana or a handful of berries.</span>`
+            <span class="hint-why"><strong>Why?</strong> Fructose malabsorption means your small intestine struggles to absorb fructose efficiently. When excess fructose reaches the colon, bacteria ferment it, causing bloating and discomfort. Key insight: the fructose-to-glucose ratio matters more than total fructose. Foods with equal or more glucose than fructose are better tolerated because glucose aids fructose absorption. Berries, kiwi, and bananas have favorable ratios. Apples, pears, and mangoes are high in excess fructose. The "apple a day" recommendation can be adapted - substitute with a banana or a handful of berries.</span>`,
+            `<strong>Fruktoseintoleranz – die Obstauswahl zählt:</strong><br>
+            <span class="hint-effect">&#10132; Fruktosearme Obstsorten bevorzugt (Beeren, Kiwi, Zitrusfrüchte).</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Bei Fruktosemalabsorption kann dein Dünndarm Fruktose nur schlecht aufnehmen. Gelangt überschüssige Fruktose in den Dickdarm, wird sie von Bakterien vergoren – das verursacht Blähungen und Beschwerden. Wichtige Erkenntnis: Das Verhältnis von Fruktose zu Glukose ist wichtiger als die Gesamtmenge an Fruktose. Lebensmittel mit gleich viel oder mehr Glukose als Fruktose werden besser vertragen, weil Glukose die Fruktoseaufnahme unterstützt. Beeren, Kiwi und Bananen haben ein günstiges Verhältnis. Äpfel, Birnen und Mangos enthalten viel überschüssige Fruktose. Die Empfehlung „ein Apfel am Tag“ lässt sich anpassen – nimm stattdessen eine Banane oder eine Handvoll Beeren.</span>`)
         });
     }
 
     if (p.allergien.includes('histamine')) {
         hints.push({
             icon: '&#129472;',
-            text: `<strong>Histamine Intolerance - Freshness is key:</strong><br>
+            text: L(`<strong>Histamine Intolerance - Freshness is key:</strong><br>
             <span class="hint-effect">&#10132; Avoid aged, fermented, and long-stored foods.</span><br>
-            <span class="hint-why"><strong>Why?</strong> Histamine is naturally present in all foods and increases with age/fermentation. Your body normally breaks it down with the enzyme diamine oxidase (DAO). With histamine intolerance, DAO activity is reduced, causing headaches, flushing, digestive issues, or skin reactions. <em>High histamine:</em> aged cheese, canned fish, sauerkraut, vinegar, wine, cured meats. <em>Low histamine:</em> fresh meat/fish (cook immediately after buying), fresh vegetables, rice, potatoes, most fresh fruits. Tip: cook fresh and eat immediately - leftovers accumulate histamine quickly.</span>`
+            <span class="hint-why"><strong>Why?</strong> Histamine is naturally present in all foods and increases with age/fermentation. Your body normally breaks it down with the enzyme diamine oxidase (DAO). With histamine intolerance, DAO activity is reduced, causing headaches, flushing, digestive issues, or skin reactions. <em>High histamine:</em> aged cheese, canned fish, sauerkraut, vinegar, wine, cured meats. <em>Low histamine:</em> fresh meat/fish (cook immediately after buying), fresh vegetables, rice, potatoes, most fresh fruits. Tip: cook fresh and eat immediately - leftovers accumulate histamine quickly.</span>`,
+            `<strong>Histaminintoleranz – Frische ist entscheidend:</strong><br>
+            <span class="hint-effect">&#10132; Gereifte, fermentierte und lange gelagerte Lebensmittel meiden.</span><br>
+            <span class="hint-why"><strong>Warum?</strong> Histamin kommt natürlich in allen Lebensmitteln vor und nimmt mit Reifung/Fermentation zu. Normalerweise baut dein Körper es mit dem Enzym Diaminoxidase (DAO) ab. Bei Histaminintoleranz ist die DAO-Aktivität verringert, was Kopfschmerzen, Hautrötungen, Verdauungsprobleme oder Hautreaktionen verursacht. <em>Histaminreich:</em> gereifter Käse, Fischkonserven, Sauerkraut, Essig, Wein, Pökelwaren. <em>Histaminarm:</em> frisches Fleisch/frischer Fisch (direkt nach dem Kauf zubereiten), frisches Gemüse, Reis, Kartoffeln, die meisten frischen Früchte. Tipp: frisch kochen und sofort essen – in Resten reichert sich Histamin schnell an.</span>`)
         });
     }
 
@@ -1374,16 +1506,20 @@ function renderHints() {
     if (bmi < 18.5) {
         hints.push({
             icon: '&#9888;',
-            text: `<strong>Underweight (BMI ${bmi.toFixed(1)}) - Important note:</strong><br>
-            <span class="hint-why">A BMI below 18.5 can indicate insufficient nutrient reserves. If unintentional, please consult a healthcare professional. For healthy weight gain, focus on calorie-dense nutrient-rich foods: nuts, avocados, olive oil, whole grains, and adequate protein. Gaining weight healthily means adding muscle, not just fat - combine a caloric surplus with resistance training.</span>`
+            text: L(`<strong>Underweight (BMI ${bmi.toFixed(1)}) - Important note:</strong><br>
+            <span class="hint-why">A BMI below 18.5 can indicate insufficient nutrient reserves. If unintentional, please consult a healthcare professional. For healthy weight gain, focus on calorie-dense nutrient-rich foods: nuts, avocados, olive oil, whole grains, and adequate protein. Gaining weight healthily means adding muscle, not just fat - combine a caloric surplus with resistance training.</span>`,
+            `<strong>Untergewicht (BMI ${bmi.toFixed(1)}) – wichtiger Hinweis:</strong><br>
+            <span class="hint-why">Ein BMI unter 18,5 kann auf zu geringe Nährstoffreserven hinweisen. Wenn das ungewollt ist, wende dich bitte an eine Ärztin oder einen Arzt. Für eine gesunde Gewichtszunahme setze auf kalorien- und nährstoffreiche Lebensmittel: Nüsse, Avocados, Olivenöl, Vollkorn und ausreichend Protein. Gesund zunehmen heißt, Muskeln aufzubauen und nicht nur Fett – kombiniere einen Kalorienüberschuss mit Krafttraining.</span>`)
         });
     }
 
     // === GENERAL EDUCATIONAL HINT (always shown) ===
     hints.push({
         icon: '&#129504;',
-        text: `<strong>Understanding Your Numbers:</strong><br>
-        Your <em>Basal Metabolic Rate</em> (BMR: ${state.results.bmr} kcal) is the energy your body burns just existing - breathing, circulation, cell repair. It accounts for ~60-70% of daily calorie burn. Your <em>TDEE</em> (${state.results.tdee} kcal) adds your physical activity on top. The macros are calculated as: <strong>Protein</strong> (${m.protein.grams}g = ${(m.protein.grams/p.gewicht).toFixed(1)}g per kg body weight), <strong>Fats</strong> (${m.fats.percent}% of calories = ${m.fats.grams}g, essential for hormone production and vitamin absorption), <strong>Carbs</strong> (${m.carbs.grams}g = the remaining calories, your body's preferred energy source).`
+        text: L(`<strong>Understanding Your Numbers:</strong><br>
+        Your <em>Basal Metabolic Rate</em> (BMR: ${state.results.bmr} kcal) is the energy your body burns just existing - breathing, circulation, cell repair. It accounts for ~60-70% of daily calorie burn. Your <em>TDEE</em> (${state.results.tdee} kcal) adds your physical activity on top. The macros are calculated as: <strong>Protein</strong> (${m.protein.grams}g = ${(m.protein.grams/p.gewicht).toFixed(1)}g per kg body weight), <strong>Fats</strong> (${m.fats.percent}% of calories = ${m.fats.grams}g, essential for hormone production and vitamin absorption), <strong>Carbs</strong> (${m.carbs.grams}g = the remaining calories, your body's preferred energy source).`,
+            `<strong>Deine Zahlen verstehen:</strong><br>
+        Dein <em>Grundumsatz</em> (BMR: ${state.results.bmr} kcal) ist die Energie, die dein Körper allein fürs Existieren verbraucht – Atmung, Kreislauf, Zellreparatur. Er macht ca. 60–70 % deines täglichen Kalorienverbrauchs aus. Dein <em>TDEE</em> (${state.results.tdee} kcal) rechnet deine körperliche Aktivität obendrauf. Die Makros werden so berechnet: <strong>Protein</strong> (${m.protein.grams}g = ${(m.protein.grams/p.gewicht).toFixed(1)}g pro kg Körpergewicht), <strong>Fett</strong> (${m.fats.percent} % der Kalorien = ${m.fats.grams}g, essenziell für die Hormonproduktion und die Aufnahme von Vitaminen), <strong>Kohlenhydrate</strong> (${m.carbs.grams}g = die restlichen Kalorien, die bevorzugte Energiequelle deines Körpers).`)
     });
 
     const grid = document.getElementById('hintsGrid');
@@ -1399,6 +1535,7 @@ function renderHints() {
 // ==========================================
 // SHOW/HIDE SECTIONS
 // ==========================================
+
 function showSection(id) {
     document.getElementById(id).classList.remove('hidden');
     document.getElementById(id).querySelectorAll('.section-header, .form-card, .result-card, .macro-card').forEach(el => {
@@ -1490,7 +1627,7 @@ function buildDayTabs(activeDay) {
         const btn = document.createElement('button');
         btn.className = 'day-tab' + (d === activeDay ? ' active' : '');
         btn.dataset.day = d;
-        btn.textContent = DAY_SHORT_NAMES[d];
+        btn.textContent = dayShortLabel(d);
         btn.addEventListener('click', () => {
             document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
@@ -1504,10 +1641,10 @@ function buildDayTabs(activeDay) {
 function updateMealplanSubtitle() {
     const p = state.profile;
     const numDays = state.weekPlan.length;
-    const daysText = numDays === 1 ? '1 day' : numDays + ' days';
-    const mealsText = state.preferences.numMeals + ' meals/day';
+    const daysText = numDays === 1 ? L('1 day', '1 Tag') : numDays + L(' days', ' Tage');
+    const mealsText = state.preferences.numMeals + L(' meals/day', ' Mahlzeiten/Tag');
     document.getElementById('mealplanSubtitle').textContent =
-        `For ${p.name} | ${state.results.targetKcal} kcal/day | ${state.macros.protein.grams}g P / ${state.macros.carbs.grams}g C / ${state.macros.fats.grams}g F | ${mealsText} | ${daysText}`;
+        `${L('For', 'Für')} ${p.name} | ${state.results.targetKcal} kcal/${L('day', 'Tag')} | ${state.macros.protein.grams}g P / ${state.macros.carbs.grams}g ${L('C', 'KH')} / ${state.macros.fats.grams}g F | ${mealsText} | ${daysText}`;
 }
 
 function savePlan() {
@@ -2151,25 +2288,25 @@ function renderDayPlan(dayIndex) {
         return `
             <div class="meal-card">
                 <div class="meal-card-header">
-                    <span>${mealIcon} ${meal.name}</span>
+                    <span>${mealIcon} ${mealLabel(meal.name)}</span>
                     <span style="display:flex;align-items:center;gap:0.5rem;">
                         <span class="meal-kcal">${Math.round(totals.kcal)} kcal</span>
-                        <button onclick="swapMeal(${dayIndex}, ${mi})" title="Swap this meal"
+                        <button onclick="swapMeal(${dayIndex}, ${mi})" title="${L('Swap this meal', 'Mahlzeit tauschen')}"
                             style="width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:opacity 0.2s,background 0.2s;opacity:0.5;padding:0;line-height:1;"
                             onmouseover="this.style.opacity='1';this.style.background='rgba(255,255,255,0.12)'"
                             onmouseout="this.style.opacity='0.5';this.style.background='rgba(255,255,255,0.05)'"
                         >&#8635;</button>
                     </span>
                 </div>
-                <div class="meal-recipe-name">${recipe.name}</div>
+                <div class="meal-recipe-name">${recipeText(recipe.name)}</div>
                 <div class="meal-card-body">
                     ${meal.items.map(item => `
                         <div class="meal-item">
-                            <span class="meal-item-name">${item.name}</span>
-                            <span class="meal-item-amount">${item.grams} g${DRY_WEIGHT_FOODS.has(item.name) ? ' dry' : ''}</span>
+                            <span class="meal-item-name">${foodLabel(item.name)}</span>
+                            <span class="meal-item-amount">${item.grams} g${DRY_WEIGHT_FOODS.has(item.name) ? L(' dry', ' roh') : ''}</span>
                         </div>
                     `).join('')}
-                    <div class="meal-tip">${recipe.tip}</div>
+                    <div class="meal-tip">${recipeText(recipe.tip)}</div>
                 </div>
                 <div class="meal-card-footer">
                     <div class="meal-macro p"><div class="meal-macro-value">${totals.protein.toFixed(1)}g</div><div class="meal-macro-label">Protein</div></div>
@@ -2274,7 +2411,7 @@ function initTracker() {
         }
 
         const matches = allFoodNames.filter(name =>
-            name.toLowerCase().includes(query)
+            name.toLowerCase().includes(query) || foodLabel(name).toLowerCase().includes(query)
         ).slice(0, 12);
 
         if (matches.length === 0) {
@@ -2285,8 +2422,8 @@ function initTracker() {
         autocomplete.innerHTML = matches.map(name => {
             const food = findFood(name);
             return `<div class="px-4 py-3 hover:bg-white/10 cursor-pointer border-b border-white/5 last:border-0 transition-colors" data-food="${name}">
-                <div class="font-medium text-sm text-slate-100">${name}${DRY_WEIGHT_FOODS.has(name) ? ' <span class="text-xs text-amber-400">dry</span>' : ''}</div>
-                <div class="text-xs text-slate-400 mt-0.5">${food.kcal} kcal/100g &middot; P: ${food.protein}g &middot; C: ${food.carbs}g &middot; F: ${food.fat}g</div>
+                <div class="font-medium text-sm text-slate-100">${foodLabel(name)}${DRY_WEIGHT_FOODS.has(name) ? ` <span class="text-xs text-amber-400">${L('dry', 'roh')}</span>` : ''}</div>
+                <div class="text-xs text-slate-400 mt-0.5">${food.kcal} kcal/100g &middot; P: ${food.protein}g &middot; ${L('C', 'KH')}: ${food.carbs}g &middot; F: ${food.fat}g</div>
             </div>`;
         }).join('');
 
@@ -2295,7 +2432,7 @@ function initTracker() {
         autocomplete.querySelectorAll('[data-food]').forEach(el => {
             el.addEventListener('click', () => {
                 const foodName = el.dataset.food;
-                input.value = foodName;
+                input.value = foodLabel(foodName);
                 trackerSelectedFood = foodName;
                 autocomplete.classList.add('hidden');
                 updateTrackerPreview();
@@ -2342,8 +2479,8 @@ function updateTrackerPreview() {
     const grams = getGramsFromUnit(trackerSelectedFood, amount, unit);
 
     let gramsNote = `= ${Math.round(grams)} g`;
-    if (unit === 'piece' && !PIECE_WEIGHTS[trackerSelectedFood]) gramsNote += ' (no piece weight known, 100 g assumed: better use grams)';
-    if (DRY_WEIGHT_FOODS.has(trackerSelectedFood)) gramsNote += ' · dry weight! For cooked food pick the "(cooked)" entry';
+    if (unit === 'piece' && !PIECE_WEIGHTS[trackerSelectedFood]) gramsNote += L(' (no piece weight known, 100 g assumed: better use grams)', ' (kein Stückgewicht bekannt, 100 g angenommen: besser Gramm verwenden)');
+    if (DRY_WEIGHT_FOODS.has(trackerSelectedFood)) gramsNote += L(' · dry weight! For cooked food pick the "(cooked)" entry', ' · Rohgewicht! Für Gekochtes den Eintrag „(gekocht)“ wählen');
     document.getElementById('previewGrams').textContent = gramsNote;
     document.getElementById('previewKcal').textContent = Math.round(food.kcal * grams / 100);
     document.getElementById('previewProtein').textContent = (food.protein * grams / 100).toFixed(1) + 'g';
@@ -2467,7 +2604,7 @@ function restoreMeal(idx) {
 function changePlanDay(value) {
     const planDay = parseInt(value);
     const touched = state.day.meals.some(m => m.status !== 'pending');
-    if (touched && !confirm('Switch plan day? Ticked and removed meals of today will be reset.')) {
+    if (touched && !confirm(L('Switch plan day? Ticked and removed meals of today will be reset.', 'Plantag wechseln? Abgehakte und entfernte Mahlzeiten von heute werden zurückgesetzt.'))) {
         renderTracker();
         return;
     }
@@ -2479,16 +2616,16 @@ function changePlanDay(value) {
 
 function addTrackerItem() {
     const input = document.getElementById('trackerFoodInput');
-    const foodName = input.value.trim();
+    const foodName = trackerSelectedFood || input.value.trim();
 
     if (!foodName) {
-        alert('Please select a food item first.');
+        alert(L('Please select a food item first.', 'Bitte wähle zuerst ein Lebensmittel aus.'));
         return;
     }
 
     const food = findFood(foodName);
     if (!food) {
-        alert('Food not found in database. Please select from the suggestions.');
+        alert(L('Food not found in database. Please select from the suggestions.', 'Lebensmittel nicht gefunden. Bitte wähle aus den Vorschlägen.'));
         return;
     }
 
@@ -2530,7 +2667,7 @@ function removeTrackerItem(id) {
 }
 
 function clearTracker() {
-    if (confirm('Reset today\'s log? Plan meals are un-ticked and your own entries removed.')) {
+    if (confirm(L('Reset today\'s log? Plan meals are un-ticked and your own entries removed.', 'Heutiges Protokoll zurücksetzen? Planmahlzeiten werden abgewählt und eigene Einträge gelöscht.'))) {
         state.day.meals.forEach(m => { m.status = 'pending'; });
         state.day.extras = [];
         saveDay();
@@ -2542,21 +2679,21 @@ function renderTrackerControls() {
     const day = state.day;
     const date = new Date(day.date + 'T00:00:00');
     document.getElementById('trackerDateLabel').textContent =
-        date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
+        date.toLocaleDateString(dateLocale(), { weekday: 'long', day: 'numeric', month: 'short' });
 
     const planDayWrap = document.getElementById('trackerPlanDayWrap');
     const planDaySelect = document.getElementById('trackerPlanDay');
     if (state.weekPlan.length) {
         planDayWrap.classList.remove('hidden');
         planDaySelect.innerHTML = state.weekPlan.map((d, i) =>
-            `<option value="${i}"${i === day.planDay ? ' selected' : ''}>${d.name}</option>`).join('');
+            `<option value="${i}"${i === day.planDay ? ' selected' : ''}>${dayLabel(d.name)}</option>`).join('');
     } else {
         planDayWrap.classList.add('hidden');
     }
 
     const slotSelect = document.getElementById('trackerSlot');
     const current = slotSelect.value;
-    slotSelect.innerHTML = day.meals.map((m, i) => `<option value="${i}">${m.name}</option>`).join('') +
+    slotSelect.innerHTML = day.meals.map((m, i) => `<option value="${i}">${mealLabel(m.name)}</option>`).join('') +
         '<option value="extra">Snack / Extra</option>';
     slotSelect.value = [...slotSelect.options].some(o => o.value === current) ? current : 'extra';
 }
@@ -2573,12 +2710,12 @@ function renderTracker() {
     const itemRow = item => `
         <div class="tracker-item">
             <div class="tracker-item-info">
-                <div class="tracker-item-name">${item.name}</div>
-                <div class="tracker-item-detail">${item.unit === 'g' ? '' : `${item.amount} ${item.unit} `}(${item.grams}g) &middot; ${item.kcal} kcal</div>
+                <div class="tracker-item-name">${foodLabel(item.name)}</div>
+                <div class="tracker-item-detail">${item.unit === 'g' ? '' : `${item.amount} ${unitLabel(item.unit)} `}(${item.grams}g) &middot; ${item.kcal} kcal</div>
             </div>
             <div class="tracker-item-macros">
                 <div class="tracker-item-macro"><div class="tracker-item-macro-value" style="color:var(--protein-color)">${item.protein}g</div><div class="tracker-item-macro-label">P</div></div>
-                <div class="tracker-item-macro"><div class="tracker-item-macro-value" style="color:var(--carbs-color)">${item.carbs}g</div><div class="tracker-item-macro-label">C</div></div>
+                <div class="tracker-item-macro"><div class="tracker-item-macro-value" style="color:var(--carbs-color)">${item.carbs}g</div><div class="tracker-item-macro-label">${L('C', 'KH')}</div></div>
                 <div class="tracker-item-macro"><div class="tracker-item-macro-value" style="color:var(--fats-color)">${item.fat}g</div><div class="tracker-item-macro-label">F</div></div>
             </div>
             <button class="tracker-item-delete" onclick="removeTrackerItem(${item.id})">&#10005;</button>
@@ -2594,11 +2731,11 @@ function renderTracker() {
             return `
                 <div class="log-meal removed">
                     <div class="log-meal-header">
-                        <span class="log-meal-title">${icon} ${meal.name}</span>
+                        <span class="log-meal-title">${icon} ${mealLabel(meal.name)}</span>
                         <span class="log-meal-kcal">${ownKcal} kcal</span>
                         <button class="log-meal-restore" onclick="restoreMeal(${i})">Restore plan</button>
                     </div>
-                    ${ownHtml || `<div class="log-meal-empty">Plan meal removed. Add what you actually ate with "Add to: ${meal.name}".</div>`}
+                    ${ownHtml || `<div class="log-meal-empty">${L(`Plan meal removed. Add what you actually ate with "Add to: ${mealLabel(meal.name)}".`, `Planmahlzeit entfernt. Trag ein, was du wirklich gegessen hast, mit „Hinzufügen zu: ${mealLabel(meal.name)}“.`)}</div>`}
                 </div>`;
         }
 
@@ -2608,12 +2745,12 @@ function renderTracker() {
             <div class="log-meal${done ? ' done' : ''}">
                 <div class="log-meal-header">
                     <button class="log-meal-check" onclick="toggleMealDone(${i})" aria-label="Mark as eaten">${done ? '&#10003;' : ''}</button>
-                    <span class="log-meal-title">${icon} ${meal.name}</span>
+                    <span class="log-meal-title">${icon} ${mealLabel(meal.name)}</span>
                     <span class="log-meal-kcal">${planKcal + ownKcal} kcal</span>
                     <button class="tracker-item-delete" onclick="removeMeal(${i})" title="Remove plan meal">&#10005;</button>
                 </div>
                 <div class="log-meal-items">${meal.items.map(it =>
-                    `${it.name} ${it.grams} g${DRY_WEIGHT_FOODS.has(it.name) ? ' (dry)' : ''}`).join(' &middot; ')}</div>
+                    `${foodLabel(it.name)} ${it.grams} g${DRY_WEIGHT_FOODS.has(it.name) ? L(' (dry)', ' (roh)') : ''}`).join(' &middot; ')}</div>
                 ${ownHtml}
             </div>`;
     }).join('');
@@ -2642,7 +2779,7 @@ function renderTracker() {
 
     const pendingKcal = Math.round(sumItems(day.meals.filter(m => m.status === 'pending').flatMap(m => m.items)).kcal);
     const remainingDiv = document.getElementById('trackerPending');
-    remainingDiv.textContent = pendingKcal > 0 ? `Still planned today: ${pendingKcal} kcal (not ticked yet)` : '';
+    remainingDiv.textContent = pendingKcal > 0 ? L(`Still planned today: ${pendingKcal} kcal (not ticked yet)`, `Heute noch geplant: ${pendingKcal} kcal (noch nicht abgehakt)`) : '';
 
     // Show target comparison if results are available
     const compDiv = document.getElementById('trackerTargetComparison');
@@ -2737,7 +2874,7 @@ function renderWaterTracker() {
 
     // Update target label
     const targetLabel = document.getElementById('waterTargetLabel');
-    if (targetLabel) targetLabel.textContent = 'Target: ' + target + 'L';
+    if (targetLabel) targetLabel.textContent = L('Target: ', 'Ziel: ') + target + 'L';
 
     // Render 8 glass buttons
     let html = '';
@@ -2821,12 +2958,12 @@ function archiveDay(day) {
 
 function finishDay() {
     if (getEatenItems().length === 0) {
-        alert('Nothing logged as eaten today. Tick off meals or add items first.');
+        alert(L('Nothing logged as eaten today. Tick off meals or add items first.', 'Heute ist noch nichts als gegessen eingetragen. Hake Mahlzeiten ab oder füge etwas hinzu.'));
         return;
     }
 
     if (getTrackingHistory().some(d => d.date === state.day.date)) {
-        if (!confirm('You already have an entry for today. Replace it?')) return;
+        if (!confirm(L('You already have an entry for today. Replace it?', 'Für heute gibt es schon einen Eintrag. Ersetzen?'))) return;
     }
 
     const entry = buildHistoryEntry(state.day);
@@ -2860,57 +2997,86 @@ function generateFeedback(entry) {
 
         // Calories
         if (kcalPct < 85) {
-            tips.push({ icon: '&#9888;', type: 'warning', text: `<strong>Undereating:</strong> You ate only <strong>${kcalPct}%</strong> of your calorie target (${t.kcal} of ${tgt.kcal} kcal). Chronic undereating slows metabolism and leads to muscle loss. Try adding a portion of complex carbs or healthy fats.` });
+            tips.push({ icon: '&#9888;', type: 'warning', text: L(
+                `<strong>Undereating:</strong> You ate only <strong>${kcalPct}%</strong> of your calorie target (${t.kcal} of ${tgt.kcal} kcal). Chronic undereating slows metabolism and leads to muscle loss. Try adding a portion of complex carbs or healthy fats.`,
+                `<strong>Zu wenig gegessen:</strong> Du hast nur <strong>${kcalPct}%</strong> deines Kalorienziels erreicht (${t.kcal} von ${tgt.kcal} kcal). Dauerhaft zu wenig zu essen bremst den Stoffwechsel und führt zu Muskelabbau. Ergänze eine Portion komplexer Kohlenhydrate oder gesunder Fette.`) });
         } else if (kcalPct > 115) {
-            tips.push({ icon: '&#128200;', type: 'over', text: `<strong>Over target:</strong> You consumed <strong>${kcalPct}%</strong> of your calorie target (${t.kcal} of ${tgt.kcal} kcal). An occasional surplus is normal — if this is frequent, consider smaller portions or less calorie-dense foods.` });
+            tips.push({ icon: '&#128200;', type: 'over', text: L(
+                `<strong>Over target:</strong> You consumed <strong>${kcalPct}%</strong> of your calorie target (${t.kcal} of ${tgt.kcal} kcal). An occasional surplus is normal — if this is frequent, consider smaller portions or less calorie-dense foods.`,
+                `<strong>Über dem Ziel:</strong> Du hast <strong>${kcalPct}%</strong> deines Kalorienziels gegessen (${t.kcal} von ${tgt.kcal} kcal). Ein gelegentlicher Überschuss ist normal – passiert das häufiger, wähle kleinere Portionen oder weniger kalorienreiche Lebensmittel.`) });
         } else {
-            tips.push({ icon: '&#9989;', type: 'good', text: `<strong>Calories on point!</strong> You hit <strong>${kcalPct}%</strong> of your target (${t.kcal} of ${tgt.kcal} kcal). Well done!` });
+            tips.push({ icon: '&#9989;', type: 'good', text: L(
+                `<strong>Calories on point!</strong> You hit <strong>${kcalPct}%</strong> of your target (${t.kcal} of ${tgt.kcal} kcal). Well done!`,
+                `<strong>Kalorien punktgenau!</strong> Du hast <strong>${kcalPct}%</strong> deines Ziels erreicht (${t.kcal} von ${tgt.kcal} kcal). Gut gemacht!`) });
         }
 
         // Protein
         if (protPct < 80) {
-            tips.push({ icon: '&#127830;', type: 'warning', text: `<strong>Low protein:</strong> Only ${t.protein}g of ${tgt.protein}g target (${protPct}%). Protein is critical for muscle maintenance and satiety. Consider adding a protein-rich food to your next meal.` });
+            tips.push({ icon: '&#127830;', type: 'warning', text: L(
+                `<strong>Low protein:</strong> Only ${t.protein}g of ${tgt.protein}g target (${protPct}%). Protein is critical for muscle maintenance and satiety. Consider adding a protein-rich food to your next meal.`,
+                `<strong>Wenig Protein:</strong> Nur ${t.protein}g von ${tgt.protein}g Ziel (${protPct}%). Protein ist entscheidend für den Muskelerhalt und die Sättigung. Ergänze bei der nächsten Mahlzeit ein proteinreiches Lebensmittel.`) });
         } else if (protPct >= 95) {
-            tips.push({ icon: '&#128170;', type: 'good', text: `<strong>Protein target hit!</strong> ${t.protein}g of ${tgt.protein}g (${protPct}%). Your muscles are well-supplied.` });
+            tips.push({ icon: '&#128170;', type: 'good', text: L(
+                `<strong>Protein target hit!</strong> ${t.protein}g of ${tgt.protein}g (${protPct}%). Your muscles are well-supplied.`,
+                `<strong>Proteinziel erreicht!</strong> ${t.protein}g von ${tgt.protein}g (${protPct}%). Deine Muskeln sind gut versorgt.`) });
         }
 
         // Fiber
         if (fiberPct < 70) {
-            tips.push({ icon: '&#129382;', type: 'warning', text: `<strong>Low fiber:</strong> ${t.fiber}g of ${tgt.fiber}g target. Fiber supports digestion, gut health, and satiety. Add more vegetables, legumes, or whole grains.` });
+            tips.push({ icon: '&#129382;', type: 'warning', text: L(
+                `<strong>Low fiber:</strong> ${t.fiber}g of ${tgt.fiber}g target. Fiber supports digestion, gut health, and satiety. Add more vegetables, legumes, or whole grains.`,
+                `<strong>Wenig Ballaststoffe:</strong> ${t.fiber}g von ${tgt.fiber}g Ziel. Ballaststoffe unterstützen Verdauung, Darmgesundheit und Sättigung. Iss mehr Gemüse, Hülsenfrüchte oder Vollkorn.`) });
         } else if (fiberPct >= 90) {
-            tips.push({ icon: '&#127793;', type: 'good', text: `<strong>Great fiber intake!</strong> ${t.fiber}g — excellent for your gut microbiome.` });
+            tips.push({ icon: '&#127793;', type: 'good', text: L(
+                `<strong>Great fiber intake!</strong> ${t.fiber}g — excellent for your gut microbiome.`,
+                `<strong>Super Ballaststoffzufuhr!</strong> ${t.fiber}g – hervorragend für dein Darmmikrobiom.`) });
         }
 
         // Fat
         if (fatPct > 130) {
-            tips.push({ icon: '&#129361;', type: 'over', text: `<strong>High fat day:</strong> ${t.fat}g vs. ${tgt.fat}g target (${fatPct}%). Check if oils, nuts, or cheese portions were larger than planned.` });
+            tips.push({ icon: '&#129361;', type: 'over', text: L(
+                `<strong>High fat day:</strong> ${t.fat}g vs. ${tgt.fat}g target (${fatPct}%). Check if oils, nuts, or cheese portions were larger than planned.`,
+                `<strong>Fettreicher Tag:</strong> ${t.fat}g statt ${tgt.fat}g Ziel (${fatPct}%). Prüfe, ob Öl-, Nuss- oder Käseportionen größer waren als geplant.`) });
         }
 
         // Carbs
         if (carbPct < 60) {
-            tips.push({ icon: '&#127834;', type: 'warning', text: `<strong>Very low carbs:</strong> Only ${t.carbs}g of ${tgt.carbs}g (${carbPct}%). Unless intentional, low carbs can reduce energy and workout performance.` });
+            tips.push({ icon: '&#127834;', type: 'warning', text: L(
+                `<strong>Very low carbs:</strong> Only ${t.carbs}g of ${tgt.carbs}g (${carbPct}%). Unless intentional, low carbs can reduce energy and workout performance.`,
+                `<strong>Sehr wenig Kohlenhydrate:</strong> Nur ${t.carbs}g von ${tgt.carbs}g (${carbPct}%). Wenn das nicht beabsichtigt ist, können wenig Kohlenhydrate Energie und Trainingsleistung mindern.`) });
         }
     } else {
-        tips.push({ icon: '&#128161;', type: 'info', text: `<strong>No targets set.</strong> Fill out your profile and generate a meal plan first to get personalized feedback comparing your intake to your goals.` });
+        tips.push({ icon: '&#128161;', type: 'info', text: L(
+            `<strong>No targets set.</strong> Fill out your profile and generate a meal plan first to get personalized feedback comparing your intake to your goals.`,
+            `<strong>Keine Ziele festgelegt.</strong> Fülle zuerst dein Profil aus und erstelle einen Ernährungsplan, um persönliches Feedback zu deiner Aufnahme im Vergleich zu deinen Zielen zu bekommen.`) });
     }
 
     // --- Rule compliance ---
     const mealCount = entry.mealCount;
     if (mealCount > 3) {
-        tips.push({ icon: '&#128337;', type: 'warning', text: `<strong>Rule #1 — 3 meals/day:</strong> It looks like you may have had ${mealCount} distinct protein sources today, which could indicate more than 3 meals. Try to consolidate into 3 meals with 5-hour gaps.` });
+        tips.push({ icon: '&#128337;', type: 'warning', text: L(
+            `<strong>Rule #1 — 3 meals/day:</strong> It looks like you may have had ${mealCount} distinct protein sources today, which could indicate more than 3 meals. Try to consolidate into 3 meals with 5-hour gaps.`,
+            `<strong>Regel Nr. 1 – 3 Mahlzeiten/Tag:</strong> Es sieht so aus, als hättest du heute ${mealCount} verschiedene Mahlzeiten gehabt – also mehr als 3. Versuche, alles auf 3 Mahlzeiten mit 5 Stunden Abstand zu bündeln.`) });
     } else if (mealCount <= 3) {
-        tips.push({ icon: '&#128337;', type: 'good', text: `<strong>Rule #1 &#9989;</strong> Looks like approximately ${mealCount} meal(s) — good structure!` });
+        tips.push({ icon: '&#128337;', type: 'good', text: L(
+            `<strong>Rule #1 &#9989;</strong> Looks like approximately ${mealCount} meal(s) — good structure!`,
+            `<strong>Regel Nr. 1 &#9989;</strong> Etwa ${mealCount} Mahlzeit(en) – gute Struktur!`) });
     }
 
     // --- Protein variety ---
     const proteinItems = items.filter(i => { const f = findFood(i.name); return f && f.protein > 8; });
     const uniqueProteins = [...new Set(proteinItems.map(i => i.name))];
     if (uniqueProteins.length >= 2) {
-        tips.push({ icon: '&#128256;', type: 'good', text: `<strong>Rule #8 — Protein rotation:</strong> You had ${uniqueProteins.length} different protein sources today (${uniqueProteins.join(', ')}). Great variety!` });
+        const proteinList = uniqueProteins.map(foodLabel).join(', ');
+        tips.push({ icon: '&#128256;', type: 'good', text: L(
+            `<strong>Rule #8 — Protein rotation:</strong> You had ${uniqueProteins.length} different protein sources today (${proteinList}). Great variety!`,
+            `<strong>Regel Nr. 8 – Proteinrotation:</strong> Du hattest heute ${uniqueProteins.length} verschiedene Proteinquellen (${proteinList}). Tolle Abwechslung!`) });
     }
 
     // --- Water reminder ---
-    tips.push({ icon: '&#128167;', type: 'info', text: `<strong>Hydration reminder:</strong> Don't forget your daily water target${tgt ? '' : ' (fill in your profile to calculate it)'}. Drink between meals, not during.` });
+    tips.push({ icon: '&#128167;', type: 'info', text: L(
+        `<strong>Hydration reminder:</strong> Don't forget your daily water target${tgt ? '' : ' (fill in your profile to calculate it)'}. Drink between meals, not during.`,
+        `<strong>Trink-Erinnerung:</strong> Denk an dein tägliches Wasserziel${tgt ? '' : ' (fülle dein Profil aus, um es zu berechnen)'}. Trink zwischen den Mahlzeiten, nicht währenddessen.`) });
 
     // --- Trend (if history available) ---
     const history = getTrackingHistory();
@@ -2919,7 +3085,14 @@ function generateFeedback(entry) {
         const avgKcal = Math.round(last3.reduce((s, d) => s + d.totals.kcal, 0) / last3.length);
         const avgProt = Math.round(last3.reduce((s, d) => s + d.totals.protein, 0) / last3.length);
         const kcalTrend = Math.round((avgKcal / tgt.kcal) * 100);
-        tips.push({ icon: '&#128200;', type: 'info', text: `<strong>3-day trend:</strong> Average ${avgKcal} kcal/day (${kcalTrend}% of target), ${avgProt}g protein. ${kcalTrend > 105 ? 'Slight surplus trend — watch portions.' : kcalTrend < 90 ? 'Slight deficit trend — make sure you eat enough.' : 'Right on track!'}` });
+        const trendText = kcalTrend > 105
+            ? L('Slight surplus trend — watch portions.', 'Leichter Trend zum Überschuss – achte auf die Portionen.')
+            : kcalTrend < 90
+                ? L('Slight deficit trend — make sure you eat enough.', 'Leichter Trend zum Defizit – achte darauf, genug zu essen.')
+                : L('Right on track!', 'Genau im Plan!');
+        tips.push({ icon: '&#128200;', type: 'info', text: L(
+            `<strong>3-day trend:</strong> Average ${avgKcal} kcal/day (${kcalTrend}% of target), ${avgProt}g protein. ${trendText}`,
+            `<strong>3-Tage-Trend:</strong> Durchschnittlich ${avgKcal} kcal/Tag (${kcalTrend}% des Ziels), ${avgProt}g Protein. ${trendText}`) });
     }
 
     // Render
@@ -2941,14 +3114,14 @@ function renderHistory() {
     const history = getTrackingHistory();
 
     if (history.length === 0) {
-        container.innerHTML = '<p class="text-center text-slate-500 text-sm">No days tracked yet. Finish a day to build your history.</p>';
+        container.innerHTML = `<p class="text-center text-slate-500 text-sm">${L('No days tracked yet. Finish a day to build your history.', 'Noch keine Tage erfasst. Schließe einen Tag ab, um deinen Verlauf aufzubauen.')}</p>`;
         renderCharts();
         return;
     }
 
     container.innerHTML = history.map((entry, idx) => {
         const d = new Date(entry.date);
-        const dayName = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        const dayName = d.toLocaleDateString(dateLocale(), { weekday: 'short', month: 'short', day: 'numeric' });
         const t = entry.totals;
         const tgt = entry.targets;
         const kcalPct = tgt ? Math.round((t.kcal / tgt.kcal) * 100) : null;
@@ -2959,21 +3132,21 @@ function renderHistory() {
             <div class="flex justify-between items-center">
                 <div>
                     <div class="font-semibold text-sm">${dayName}</div>
-                    <div class="text-xs text-slate-500">${entry.items.length} items</div>
+                    <div class="text-xs text-slate-500">${entry.items.length} ${L('items', 'Einträge')}</div>
                 </div>
                 <div class="flex gap-4 text-right text-sm">
                     <div><span class="font-bold ${kcalColor}">${t.kcal}</span> <span class="text-xs text-slate-500">kcal${kcalPct !== null ? ' (' + kcalPct + '%)' : ''}</span></div>
-                    <div><span class="font-bold ${protColor}">${t.protein}g</span> <span class="text-xs text-slate-500">P</span></div>
-                    <div><span class="font-bold text-slate-300">${t.carbs}g</span> <span class="text-xs text-slate-500">C</span></div>
+                    <div><span class="font-bold ${protColor}">${t.protein}g</span> <span class="text-xs text-slate-500">${L('P', 'E')}</span></div>
+                    <div><span class="font-bold text-slate-300">${t.carbs}g</span> <span class="text-xs text-slate-500">${L('C', 'K')}</span></div>
                     <div><span class="font-bold text-slate-300">${t.fat}g</span> <span class="text-xs text-slate-500">F</span></div>
                 </div>
             </div>
             <div id="historyDetail${idx}" class="hidden mt-3 pt-3 border-t border-white/5">
                 <div class="grid gap-1 text-xs text-slate-400">
-                    ${entry.items.map(i => `<div class="flex justify-between"><span>${i.name}</span><span class="text-slate-500">${i.grams}g — ${i.kcal} kcal</span></div>`).join('')}
+                    ${entry.items.map(i => `<div class="flex justify-between"><span>${foodLabel(i.name)}</span><span class="text-slate-500">${i.grams}g — ${i.kcal} kcal</span></div>`).join('')}
                 </div>
                 <div class="mt-3 text-right">
-                    <button onclick="event.stopPropagation(); deleteHistoryEntry(${idx})" class="text-xs text-red-400/60 hover:text-red-400 transition-colors">Delete this day</button>
+                    <button onclick="event.stopPropagation(); deleteHistoryEntry(${idx})" class="text-xs text-red-400/60 hover:text-red-400 transition-colors">${L('Delete this day', 'Diesen Tag löschen')}</button>
                 </div>
             </div>
         </div>`;
@@ -2988,7 +3161,7 @@ function toggleHistoryDetail(idx) {
 }
 
 function deleteHistoryEntry(idx) {
-    if (!confirm('Delete this tracking entry?')) return;
+    if (!confirm(L('Delete this tracking entry?', 'Diesen Eintrag löschen?'))) return;
     const history = getTrackingHistory();
     history.splice(idx, 1);
     saveTrackingHistory(history);
@@ -3027,7 +3200,7 @@ function renderCharts() {
     const sorted = [...history].sort((a, b) => new Date(a.date) - new Date(b.date));
     const labels = sorted.map(e => {
         const d = new Date(e.date);
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        return d.toLocaleDateString(dateLocale(), { month: 'short', day: 'numeric' });
     });
 
     // --- Calorie Trend Line Chart ---
@@ -3042,7 +3215,7 @@ function renderCharts() {
                 labels,
                 datasets: [
                     {
-                        label: 'Actual Calories',
+                        label: L('Actual Calories', 'Tatsächliche Kalorien'),
                         data: actualCalories,
                         borderColor: '#34d399',
                         backgroundColor: 'rgba(52,211,153,0.1)',
@@ -3054,7 +3227,7 @@ function renderCharts() {
                         pointHoverRadius: 6,
                     },
                     {
-                        label: 'Target',
+                        label: L('Target', 'Ziel'),
                         data: targetCalories,
                         borderColor: '#475569',
                         borderWidth: 2,
@@ -3107,7 +3280,7 @@ function renderCharts() {
 
         const datasets = [
             {
-                label: 'Avg Protein (g)',
+                label: L('Avg Protein (g)', 'Ø Protein (g)'),
                 data: [avgProtein],
                 backgroundColor: '#f87171',
                 borderColor: '#f87171',
@@ -3115,7 +3288,7 @@ function renderCharts() {
                 borderRadius: 6,
             },
             {
-                label: 'Avg Carbs (g)',
+                label: L('Avg Carbs (g)', 'Ø Kohlenhydrate (g)'),
                 data: [avgCarbs],
                 backgroundColor: '#60a5fa',
                 borderColor: '#60a5fa',
@@ -3123,7 +3296,7 @@ function renderCharts() {
                 borderRadius: 6,
             },
             {
-                label: 'Avg Fat (g)',
+                label: L('Avg Fat (g)', 'Ø Fett (g)'),
                 data: [avgFat],
                 backgroundColor: '#fbbf24',
                 borderColor: '#fbbf24',
@@ -3134,16 +3307,16 @@ function renderCharts() {
 
         if (avgTargetP !== null) {
             datasets.push(
-                { label: 'Target P', data: [avgTargetP], backgroundColor: 'rgba(248,113,113,0.25)', borderColor: '#f87171', borderWidth: 1, borderDash: [4, 3], borderRadius: 6 },
-                { label: 'Target C', data: [avgTargetC], backgroundColor: 'rgba(96,165,250,0.25)', borderColor: '#60a5fa', borderWidth: 1, borderDash: [4, 3], borderRadius: 6 },
-                { label: 'Target F', data: [avgTargetF], backgroundColor: 'rgba(251,191,36,0.25)', borderColor: '#fbbf24', borderWidth: 1, borderDash: [4, 3], borderRadius: 6 }
+                { label: L('Target P', 'Ziel Protein'), data: [avgTargetP], backgroundColor: 'rgba(248,113,113,0.25)', borderColor: '#f87171', borderWidth: 1, borderDash: [4, 3], borderRadius: 6 },
+                { label: L('Target C', 'Ziel KH'), data: [avgTargetC], backgroundColor: 'rgba(96,165,250,0.25)', borderColor: '#60a5fa', borderWidth: 1, borderDash: [4, 3], borderRadius: 6 },
+                { label: L('Target F', 'Ziel Fett'), data: [avgTargetF], backgroundColor: 'rgba(251,191,36,0.25)', borderColor: '#fbbf24', borderWidth: 1, borderDash: [4, 3], borderRadius: 6 }
             );
         }
 
         macroChartInstance = new Chart(macroCtx, {
             type: 'bar',
             data: {
-                labels: ['Average Daily Macros'],
+                labels: [L('Average Daily Macros', 'Durchschnittliche Makros pro Tag')],
                 datasets
             },
             options: {
@@ -3178,7 +3351,8 @@ function renderCharts() {
 function exportPDF() {
     const { jsPDF } = window.jspdf || {};
     if (!jsPDF) {
-        alert('PDF library not loaded. Please check your internet connection and reload.');
+        alert(L('PDF library not loaded. Please check your internet connection and reload.',
+                'PDF-Bibliothek nicht geladen. Bitte prüfe deine Internetverbindung und lade die Seite neu.'));
         return;
     }
 
@@ -3190,7 +3364,13 @@ function exportPDF() {
     let y = margin;
 
     const p = state.profile;
-    const goalText = p.goals.map(g => ({ fatloss: 'Fat Loss', muscle: 'Muscle Building', maintain: 'Maintain', wellbeing: 'Wellbeing' }[g])).join(' + ');
+    const goalNames = {
+        fatloss: L('Fat Loss', 'Fettabbau'),
+        muscle: L('Muscle Building', 'Muskelaufbau'),
+        maintain: L('Maintain', 'Gewicht halten'),
+        wellbeing: L('Wellbeing', 'Wohlbefinden'),
+    };
+    const goalText = p.goals.map(g => goalNames[g]).join(' + ');
     const waterL = (p.gewicht * 35 / 1000).toFixed(1);
 
     const green = [45, 138, 110];
@@ -3214,15 +3394,22 @@ function exportPDF() {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(20);
     doc.setTextColor(...green);
-    doc.text('NourishLab - Meal Plan', pw / 2, y + 8, { align: 'center' });
+    doc.text(L('NourishLab - Meal Plan', 'NourishLab - Ernährungsplan'), pw / 2, y + 8, { align: 'center' });
     y += 14;
 
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(...gray);
-    doc.text(`${p.name}  |  ${state.results.targetKcal} kcal/day  |  P: ${state.macros.protein.grams}g  |  C: ${state.macros.carbs.grams}g  |  F: ${state.macros.fats.grams}g  |  Fiber: ${state.macros.fiber.grams}g+`, pw / 2, y, { align: 'center' });
+    doc.text(L(
+        `${p.name}  |  ${state.results.targetKcal} kcal/day  |  P: ${state.macros.protein.grams}g  |  C: ${state.macros.carbs.grams}g  |  F: ${state.macros.fats.grams}g  |  Fiber: ${state.macros.fiber.grams}g+`,
+        `${p.name}  |  ${state.results.targetKcal} kcal/Tag  |  E: ${state.macros.protein.grams}g  |  KH: ${state.macros.carbs.grams}g  |  F: ${state.macros.fats.grams}g  |  Ballaststoffe: ${state.macros.fiber.grams}g+`),
+        pw / 2, y, { align: 'center' });
     y += 5;
-    doc.text(`Goals: ${goalText}  |  BMI: ${state.results.bmi.toFixed(1)}  |  ${state.weekPlan.length} days  |  Created: ${new Date().toLocaleDateString('en-GB')}`, pw / 2, y, { align: 'center' });
+    const createdDate = new Date().toLocaleDateString(dateLocale() === 'de-DE' ? 'de-DE' : 'en-GB');
+    doc.text(L(
+        `Goals: ${goalText}  |  BMI: ${state.results.bmi.toFixed(1)}  |  ${state.weekPlan.length} days  |  Created: ${createdDate}`,
+        `Ziele: ${goalText}  |  BMI: ${state.results.bmi.toFixed(1)}  |  ${state.weekPlan.length} Tage  |  Erstellt: ${createdDate}`),
+        pw / 2, y, { align: 'center' });
     y += 6;
 
     // Nutrition rules box
@@ -3233,9 +3420,12 @@ function exportPDF() {
     doc.setFontSize(7.5);
     doc.setTextColor(...green);
     doc.setFont('helvetica', 'bold');
-    doc.text('Rules:', margin + 3, y + 4);
+    doc.text(L('Rules:', 'Regeln:'), margin + 3, y + 4);
     doc.setFont('helvetica', 'normal');
-    doc.text(`3 meals/day  |  5h gaps  |  Start with protein  |  1 protein/meal  |  No food after 9 PM  |  ${waterL}L water  |  1 apple/day  |  7-9h sleep`, margin + 22, y + 4);
+    doc.text(L(
+        `3 meals/day  |  5h gaps  |  Start with protein  |  1 protein/meal  |  No food after 9 PM  |  ${waterL}L water  |  1 apple/day  |  7-9h sleep`,
+        `3 Mahlzeiten/Tag  |  5 h Abstand  |  Mit Protein starten  |  1 Protein/Mahlzeit  |  Nach 21 Uhr nichts essen  |  ${waterL} L Wasser  |  1 Apfel/Tag  |  7-9 h Schlaf`),
+        margin + 22, y + 4);
     y += 14;
 
     drawLine(margin, y, pw - margin, green);
@@ -3250,7 +3440,7 @@ function exportPDF() {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(13);
         doc.setTextColor(...green);
-        doc.text(day.name, margin, y);
+        doc.text(dayLabel(day.name), margin, y);
         y += 2;
         drawLine(margin, y, pw - margin, green);
         y += 5;
@@ -3264,7 +3454,7 @@ function exportPDF() {
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(10);
             doc.setTextColor(...dark);
-            doc.text(`${meal.name}: ${recipe.name}`, margin, y);
+            doc.text(`${mealLabel(meal.name)}: ${recipeText(recipe.name)}`, margin, y);
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(9);
             doc.setTextColor(...green);
@@ -3274,7 +3464,7 @@ function exportPDF() {
             doc.setFontSize(7);
             doc.setTextColor(...gray);
             doc.setFont('helvetica', 'italic');
-            const tipLines = doc.splitTextToSize(recipe.tip, cw - 4);
+            const tipLines = doc.splitTextToSize(recipeText(recipe.tip), cw - 4);
             doc.text(tipLines, margin + 2, y);
             y += tipLines.length * 3 + 2;
 
@@ -3283,12 +3473,12 @@ function exportPDF() {
             doc.setTextColor(...gray);
             doc.setFillColor(240, 242, 245);
             doc.rect(margin, y - 1, cw, 5, 'F');
-            doc.text('Food', colX[0] + 1, y + 2.5);
-            doc.text('Amount', colX[1] + 1, y + 2.5);
+            doc.text(L('Food', 'Lebensmittel'), colX[0] + 1, y + 2.5);
+            doc.text(L('Amount', 'Menge'), colX[1] + 1, y + 2.5);
             doc.text('Kcal', colX[2] + 1, y + 2.5);
-            doc.text('Prot', colX[3] + 1, y + 2.5);
-            doc.text('Carbs', colX[4] + 1, y + 2.5);
-            doc.text('Fat', colX[5] + 1, y + 2.5);
+            doc.text(L('Prot', 'Eiw.'), colX[3] + 1, y + 2.5);
+            doc.text(L('Carbs', 'KH'), colX[4] + 1, y + 2.5);
+            doc.text(L('Fat', 'Fett'), colX[5] + 1, y + 2.5);
             y += 6;
 
             doc.setFont('helvetica', 'normal');
@@ -3296,7 +3486,7 @@ function exportPDF() {
             doc.setTextColor(...dark);
             meal.items.forEach(item => {
                 checkPage(6);
-                doc.text(item.name, colX[0] + 1, y);
+                doc.text(foodLabel(item.name), colX[0] + 1, y);
                 doc.text(`${item.grams} g`, colX[1] + 1, y);
                 doc.text(`${item.kcal}`, colX[2] + 1, y);
                 doc.text(`${item.protein.toFixed(1)}`, colX[3] + 1, y);
@@ -3325,17 +3515,17 @@ function exportPDF() {
         doc.setTextColor(...green);
         doc.text(`${Math.round(dt.kcal)} kcal`, margin + sumSpacing * 0.5, sumY, { align: 'center' });
         doc.setTextColor(192, 57, 43);
-        doc.text(`${dt.protein.toFixed(1)}g P`, margin + sumSpacing * 1.5, sumY, { align: 'center' });
+        doc.text(`${dt.protein.toFixed(1)}g ${L('P', 'E')}`, margin + sumSpacing * 1.5, sumY, { align: 'center' });
         doc.setTextColor(41, 128, 185);
-        doc.text(`${dt.carbs.toFixed(1)}g C`, margin + sumSpacing * 2.5, sumY, { align: 'center' });
+        doc.text(`${dt.carbs.toFixed(1)}g ${L('C', 'KH')}`, margin + sumSpacing * 2.5, sumY, { align: 'center' });
         doc.setTextColor(212, 160, 23);
         doc.text(`${dt.fat.toFixed(1)}g F`, margin + sumSpacing * 3.5, sumY, { align: 'center' });
         doc.setTextColor(39, 174, 96);
-        doc.text(`${dt.fiber.toFixed(1)}g Fiber`, margin + sumSpacing * 4.5, sumY, { align: 'center' });
+        doc.text(`${dt.fiber.toFixed(1)}g ${L('Fiber', 'Ballaststoffe')}`, margin + sumSpacing * 4.5, sumY, { align: 'center' });
         y += 14;
     });
 
-    doc.save(`NourishLab_MealPlan_${p.name}_${localDateStr()}.pdf`);
+    doc.save(`NourishLab_${L('MealPlan', 'Ernaehrungsplan')}_${p.name}_${localDateStr()}.pdf`);
 }
 
 // ==========================================
@@ -3348,9 +3538,24 @@ function findFoodCategory(foodName) {
     return null;
 }
 
+// Display label for a FOODS category (the label in FOODS itself stays English)
+function shoppingCategoryLabel(catKey) {
+    const de = {
+        proteinquellen: '&#127830; Proteinquellen',
+        kohlenhydrate: '&#127834; Kohlenhydratquellen',
+        gemuese: '&#129382; Gemüse',
+        salate: '&#129388; Salate &amp; Blattgemüse',
+        obst: '&#127815; Obst',
+        huelsenfruechte: '&#129372; Nüsse &amp; Samen',
+        oele: '&#129361; Öle &amp; Fette',
+    };
+    const en = FOODS[catKey]?.label || catKey;
+    return L(en, de[catKey] || en);
+}
+
 function generateShoppingList() {
     if (!state.weekPlan || state.weekPlan.length === 0) {
-        alert('Please generate a meal plan first.');
+        alert(L('Please generate a meal plan first.', 'Bitte erstelle zuerst einen Ernährungsplan.'));
         return;
     }
 
@@ -3392,14 +3597,14 @@ function generateShoppingList() {
     let html = '';
     categoryOrder.forEach(catKey => {
         if (!grouped[catKey]) return;
-        const label = FOODS[catKey]?.label || catKey;
+        const label = shoppingCategoryLabel(catKey);
         html += `
             <div class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-6 mb-4">
                 <h3 class="text-lg font-semibold text-slate-100 mb-3">${label}</h3>
                 <ul class="space-y-2">
                     ${grouped[catKey].map(item => `
                         <li class="flex justify-between items-center py-1.5 border-b border-white/5 last:border-0">
-                            <span class="text-slate-300">${item.name}</span>
+                            <span class="text-slate-300">${foodLabel(item.name)}</span>
                             <span class="text-primary font-semibold">${item.grams}g</span>
                         </li>
                     `).join('')}
@@ -3412,11 +3617,11 @@ function generateShoppingList() {
     if (grouped['other']) {
         html += `
             <div class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-6 mb-4">
-                <h3 class="text-lg font-semibold text-slate-100 mb-3">Other</h3>
+                <h3 class="text-lg font-semibold text-slate-100 mb-3">${L('Other', 'Sonstiges')}</h3>
                 <ul class="space-y-2">
                     ${grouped['other'].map(item => `
                         <li class="flex justify-between items-center py-1.5 border-b border-white/5 last:border-0">
-                            <span class="text-slate-300">${item.name}</span>
+                            <span class="text-slate-300">${foodLabel(item.name)}</span>
                             <span class="text-primary font-semibold">${item.grams}g</span>
                         </li>
                     `).join('')}
@@ -3465,29 +3670,31 @@ function copyShoppingList() {
     // Strip HTML entities from labels for plain text
     const stripHtml = (str) => { const el = document.createElement('span'); el.innerHTML = str; return el.textContent; };
 
-    let text = `NourishLab Shopping List (${state.weekPlan.length} days)\n${'='.repeat(40)}\n\n`;
+    let text = L(
+        `NourishLab Shopping List (${state.weekPlan.length} days)\n${'='.repeat(40)}\n\n`,
+        `NourishLab Einkaufsliste (${state.weekPlan.length} Tage)\n${'='.repeat(40)}\n\n`);
 
     categoryOrder.forEach(catKey => {
         if (!grouped[catKey]) return;
-        const label = stripHtml(FOODS[catKey]?.label || catKey);
+        const label = stripHtml(shoppingCategoryLabel(catKey));
         text += `${label}\n${'-'.repeat(30)}\n`;
         grouped[catKey].forEach(item => {
-            text += `  ${item.name} — ${item.grams}g\n`;
+            text += `  ${foodLabel(item.name)} — ${item.grams}g\n`;
         });
         text += '\n';
     });
 
     if (grouped['other']) {
-        text += `Other\n${'-'.repeat(30)}\n`;
+        text += `${L('Other', 'Sonstiges')}\n${'-'.repeat(30)}\n`;
         grouped['other'].forEach(item => {
-            text += `  ${item.name} — ${item.grams}g\n`;
+            text += `  ${foodLabel(item.name)} — ${item.grams}g\n`;
         });
     }
 
     navigator.clipboard.writeText(text.trim()).then(() => {
         const btn = document.querySelector('#shoppinglist .btn-primary');
         const original = btn.innerHTML;
-        btn.innerHTML = '&#10004; Copied!';
+        btn.innerHTML = L('&#10004; Copied!', '&#10004; Kopiert!');
         btn.classList.add('bg-emerald-600');
         setTimeout(() => {
             btn.innerHTML = original;
