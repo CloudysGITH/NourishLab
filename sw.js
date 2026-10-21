@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nourishlab-v1';
+const CACHE_NAME = 'nourishlab-v2';
 
 const ASSETS_TO_CACHE = [
     './',
@@ -7,6 +7,10 @@ const ASSETS_TO_CACHE = [
     './js/app.js',
     './icon-192.svg',
     './icon-512.svg',
+    './icon-192.png',
+    './icon-512.png',
+    './apple-touch-icon.png',
+    './favicon-32.png',
     'https://cdn.tailwindcss.com',
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap',
     'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
@@ -42,12 +46,8 @@ self.addEventListener('fetch', (event) => {
 
     // Check if this request matches a cached asset
     const isCachedAsset = ASSETS_TO_CACHE.some((asset) => {
-        if (asset.startsWith('http')) {
-            return requestUrl.startsWith(asset);
-        }
-        // For relative URLs, resolve against service worker scope
-        const resolved = new URL(asset, self.registration.scope).href;
-        return requestUrl === resolved;
+        // Only CDN assets are cache-first; own files go network-first so updates arrive
+        return asset.startsWith('http') && requestUrl.startsWith(asset);
     });
 
     if (isCachedAsset) {

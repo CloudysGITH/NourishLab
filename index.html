@@ -8,20 +8,25 @@
     <!-- Open Graph (WhatsApp, Telegram, Facebook, LinkedIn) -->
     <meta property="og:title" content="NourishLab - Your Personal Nutrition Coach">
     <meta property="og:description" content="Science-based personalized meal plans, macro tracking & food tracker. Free, no account needed.">
-    <meta property="og:image" content="https://cloudysgith.github.io/NourishLab/preview.png">
+    <meta property="og:image" content="https://cloudysgith.github.io/NourishLab/preview.png?v=2">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:url" content="https://cloudysgith.github.io/NourishLab/">
     <meta property="og:type" content="website">
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="NourishLab - Your Personal Nutrition Coach">
     <meta name="twitter:description" content="Science-based personalized meal plans, macro tracking & food tracker.">
-    <meta name="twitter:image" content="https://cloudysgith.github.io/NourishLab/preview.png">
+    <meta name="twitter:image" content="https://cloudysgith.github.io/NourishLab/preview.png?v=2">
     <!-- PWA -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0f172a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="icon-192.svg">
+    <meta name="apple-mobile-web-app-title" content="NourishLab">
+    <link rel="icon" href="icon-192.svg" type="image/svg+xml">
+    <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -878,10 +883,32 @@
                 </div>
             </div>
 
-            <!-- Tracker Input -->
+            <!-- Daily Log -->
             <div class="max-w-3xl mx-auto">
+                <div class="flex items-center justify-between gap-3 flex-wrap mb-4">
+                    <h3 id="trackerDateLabel" class="text-lg font-semibold text-slate-100"></h3>
+                    <label id="trackerPlanDayWrap" class="hidden flex items-center gap-2 text-sm text-slate-400">
+                        Plan day
+                        <select id="trackerPlanDay" onchange="changePlanDay(this.value)" class="border-2 border-white/10 bg-white/5 rounded-xl px-3 py-2 text-sm text-slate-100 outline-none focus:border-primary"></select>
+                    </label>
+                </div>
+
+                <!-- Plan meals + own entries -->
+                <div id="trackerList" class="space-y-3 mb-6">
+                    <!-- Dynamically populated -->
+                </div>
+
+                <!-- Tracker Input -->
                 <div class="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-6 shadow-lg mb-8">
-                    <h3 class="text-lg font-semibold mb-4">Add Food Item</h3>
+                    <h3 class="text-lg font-semibold mb-4">Add What You Ate</h3>
+
+                    <!-- Meal Slot -->
+                    <div class="mb-4">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Add to</label>
+                        <select id="trackerSlot" class="w-full border-2 border-white/10 bg-white/5 rounded-xl px-4 py-3 text-base text-slate-100 outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10 appearance-none cursor-pointer">
+                            <option value="extra">Snack / Extra</option>
+                        </select>
+                    </div>
 
                     <!-- Food Search -->
                     <div class="mb-4 relative">
@@ -915,7 +942,7 @@
 
                     <!-- Nutrition Preview -->
                     <div id="trackerPreview" class="hidden mb-4 p-4 bg-white/5 rounded-xl border border-white/10">
-                        <div class="text-sm text-slate-400 mb-2">Nutrition preview:</div>
+                        <div class="text-sm text-slate-400 mb-2">Nutrition preview <span id="previewGrams" class="text-slate-300"></span></div>
                         <div class="grid grid-cols-5 gap-2 text-center">
                             <div><span class="block text-lg font-bold text-primary" id="previewKcal">-</span><span class="text-xs text-slate-500">kcal</span></div>
                             <div><span class="block text-lg font-bold text-protein" id="previewProtein">-</span><span class="text-xs text-slate-500">Protein</span></div>
@@ -930,36 +957,32 @@
                     </button>
                 </div>
 
-                <!-- Tracked Items List -->
-                <div id="trackerList" class="space-y-3 mb-6">
-                    <!-- Dynamically populated -->
-                </div>
-
                 <!-- Tracker Daily Total -->
                 <div id="trackerTotal" class="hidden bg-white/5 backdrop-blur-lg rounded-2xl border-2 border-primary/20 p-6 shadow-lg">
-                    <h3 class="text-center text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Daily Total</h3>
+                    <h3 class="text-center text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Eaten Today</h3>
                     <div class="grid grid-cols-5 gap-4 text-center">
                         <div>
-                            <div class="text-3xl font-extrabold text-primary" id="totalKcal">0</div>
+                            <div class="text-xl sm:text-3xl font-extrabold text-primary" id="totalKcal">0</div>
                             <div class="text-xs font-semibold text-slate-500 uppercase">kcal</div>
                         </div>
                         <div>
-                            <div class="text-3xl font-extrabold text-protein" id="totalProtein">0</div>
+                            <div class="text-xl sm:text-3xl font-extrabold text-protein" id="totalProtein">0</div>
                             <div class="text-xs font-semibold text-slate-500 uppercase">Protein (g)</div>
                         </div>
                         <div>
-                            <div class="text-3xl font-extrabold text-carbsc" id="totalCarbs">0</div>
+                            <div class="text-xl sm:text-3xl font-extrabold text-carbsc" id="totalCarbs">0</div>
                             <div class="text-xs font-semibold text-slate-500 uppercase">Carbs (g)</div>
                         </div>
                         <div>
-                            <div class="text-3xl font-extrabold text-fatsc" id="totalFat">0</div>
+                            <div class="text-xl sm:text-3xl font-extrabold text-fatsc" id="totalFat">0</div>
                             <div class="text-xs font-semibold text-slate-500 uppercase">Fat (g)</div>
                         </div>
                         <div>
-                            <div class="text-3xl font-extrabold text-fiberc" id="totalFiber">0</div>
+                            <div class="text-xl sm:text-3xl font-extrabold text-fiberc" id="totalFiber">0</div>
                             <div class="text-xs font-semibold text-slate-500 uppercase">Fiber (g)</div>
                         </div>
                     </div>
+                    <div id="trackerPending" class="text-center text-xs text-slate-400 mt-3"></div>
                     <!-- Target comparison -->
                     <div id="trackerTargetComparison" class="hidden mt-4 pt-4 border-t border-white/10">
                         <div class="text-center text-sm text-slate-500 mb-3">vs. your daily target</div>
@@ -974,7 +997,7 @@
 
                     <div class="mt-5 flex justify-center gap-3 flex-wrap">
                         <button onclick="clearTracker()" class="btn btn-secondary text-sm">
-                            &#128465; Clear All
+                            &#128465; Reset Day
                         </button>
                         <button onclick="finishDay()" class="btn btn-primary text-sm">
                             &#9989; Finish Day &amp; Get Feedback

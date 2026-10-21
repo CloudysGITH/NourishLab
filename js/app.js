@@ -300,6 +300,31 @@ const PIECE_WEIGHTS = {
     "Radishes": 10,
 };
 
+// Grains/noodles in FOODS are stored as dry weight (the meal plan doses them dry)
+const DRY_WEIGHT_FOODS = new Set([
+    "Oatmeal (Haferflocken)", "Spelt Flakes (Dinkelflocken)", "Brown Rice", "Basmati Rice", "Jasmine Rice",
+    "Whole Wheat Pasta", "Quinoa", "Couscous", "Millet (Hirse)", "Buckwheat", "Bulgur",
+    "Rice Noodles", "Soba Noodles", "Udon Noodles", "Glass Noodles",
+]);
+
+// Tracker-only foods: cooked weights, so a weighed plate of cooked rice counts correctly (per 100 g cooked)
+const TRACKER_FOODS = {
+    "Brown Rice (cooked)": { kcal: 123, protein: 2.7, carbs: 25.6, fat: 1, fiber: 1.6 },
+    "Basmati Rice (cooked)": { kcal: 130, protein: 2.7, carbs: 28, fat: 0.3, fiber: 0.4 },
+    "Jasmine Rice (cooked)": { kcal: 129, protein: 2.7, carbs: 28, fat: 0.3, fiber: 0.4 },
+    "Pasta (cooked)": { kcal: 158, protein: 5.8, carbs: 31, fat: 0.9, fiber: 1.8 },
+    "Whole Wheat Pasta (cooked)": { kcal: 149, protein: 6, carbs: 30, fat: 1.7, fiber: 3.9 },
+    "Quinoa (cooked)": { kcal: 120, protein: 4.4, carbs: 21.3, fat: 1.9, fiber: 2.8 },
+    "Couscous (cooked)": { kcal: 112, protein: 3.8, carbs: 23.2, fat: 0.2, fiber: 1.4 },
+    "Millet (Hirse) (cooked)": { kcal: 119, protein: 3.5, carbs: 23.7, fat: 1, fiber: 1.3 },
+    "Buckwheat (cooked)": { kcal: 92, protein: 3.4, carbs: 19.9, fat: 0.6, fiber: 2.7 },
+    "Bulgur (cooked)": { kcal: 83, protein: 3.1, carbs: 18.6, fat: 0.2, fiber: 4.5 },
+    "Rice Noodles (cooked)": { kcal: 108, protein: 1.8, carbs: 24, fat: 0.2, fiber: 1 },
+    "Soba Noodles (cooked)": { kcal: 99, protein: 5.1, carbs: 21.4, fat: 0.1, fiber: 1 },
+};
+
+const MEAL_ICONS = { 'Breakfast': '&#127749;', 'Lunch': '&#9728;', 'Dinner': '&#127769;', 'Snack': '&#127856;', 'Snack 1': '&#127856;', 'Snack 2': '&#127838;', 'Snack 3': '&#127815;' };
+
 // ==========================================
 // RECIPE DATABASE
 // ==========================================
@@ -459,6 +484,8 @@ function getRecipeName(mealIndex, items) {
 // LOCAL STORAGE PERSISTENCE
 // ==========================================
 const STORAGE_KEY = 'nourishlab_v1';
+const PLAN_KEY = 'nourishlab_plan';
+const DAY_KEY = 'nourishlab_day';
 
 function saveToStorage() {
     const data = {};
@@ -590,7 +617,8 @@ let state = {
     preferences: {},
     weekPlan: [],
     currentDay: 0,
-    trackerItems: [],
+    planCreatedDate: null,
+    day: null,
     waterGlasses: 0,
 };
 
@@ -609,6 +637,12 @@ document.addEventListener('DOMContentLoaded', () => {
     loadFromStorage();
     loadWaterTracker();
     renderWaterTracker();
+    loadPlan();
+    loadDay();
+    renderTracker();
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) checkDayRollover();
+    });
     initAutoSave();
     renderHistory();
     renderCharts();
@@ -1420,27 +1454,43 @@ function generateMealPlan() {
 
     state.preferences = { diet, mealSplit, selectedFoods, numMeals };
 
-    const allDayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
-                         'Day 8', 'Day 9', 'Day 10', 'Day 11', 'Day 12', 'Day 13', 'Day 14'];
-    const shortNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun',
-                        'D8', 'D9', 'D10', 'D11', 'D12', 'D13', 'D14'];
-
     const weekPlan = [];
     for (let d = 0; d < numDays; d++) {
         const dayPlan = generateDayPlan(mealSplit, selectedFoods, d);
-        weekPlan.push({ name: allDayNames[d], meals: dayPlan });
+        weekPlan.push({ name: DAY_NAMES[d], meals: dayPlan });
     }
 
     state.weekPlan = weekPlan;
+    state.planCreatedDate = localDateStr();
+    buildDayTabs(0);
 
-    // Build day tabs dynamically
+    showSection('mealplan');
+
+    updateMealplanSubtitle();
+
+    renderDayPlan(0);
+    state.currentDay = 0;
+
+    // Also show tracker section
+    document.getElementById('tracker').classList.remove('hidden');
+
+    savePlan();
+    syncDayWithPlan();
+}
+
+const DAY_NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday',
+                   'Day 8', 'Day 9', 'Day 10', 'Day 11', 'Day 12', 'Day 13', 'Day 14'];
+const DAY_SHORT_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun',
+                         'D8', 'D9', 'D10', 'D11', 'D12', 'D13', 'D14'];
+
+function buildDayTabs(activeDay) {
     const dayTabsContainer = document.getElementById('dayTabs');
     dayTabsContainer.innerHTML = '';
-    for (let d = 0; d < numDays; d++) {
+    state.weekPlan.forEach((_, d) => {
         const btn = document.createElement('button');
-        btn.className = 'day-tab' + (d === 0 ? ' active' : '');
+        btn.className = 'day-tab' + (d === activeDay ? ' active' : '');
         btn.dataset.day = d;
-        btn.textContent = shortNames[d];
+        btn.textContent = DAY_SHORT_NAMES[d];
         btn.addEventListener('click', () => {
             document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
@@ -1448,20 +1498,56 @@ function generateMealPlan() {
             renderDayPlan(d);
         });
         dayTabsContainer.appendChild(btn);
-    }
+    });
+}
 
-    showSection('mealplan');
-
+function updateMealplanSubtitle() {
     const p = state.profile;
+    const numDays = state.weekPlan.length;
     const daysText = numDays === 1 ? '1 day' : numDays + ' days';
-    const mealsText = numMeals + ' meals/day';
+    const mealsText = state.preferences.numMeals + ' meals/day';
     document.getElementById('mealplanSubtitle').textContent =
         `For ${p.name} | ${state.results.targetKcal} kcal/day | ${state.macros.protein.grams}g P / ${state.macros.carbs.grams}g C / ${state.macros.fats.grams}g F | ${mealsText} | ${daysText}`;
+}
 
-    renderDayPlan(0);
-    state.currentDay = 0;
+function savePlan() {
+    try {
+        localStorage.setItem(PLAN_KEY, JSON.stringify({
+            weekPlan: state.weekPlan,
+            preferences: state.preferences,
+            profile: state.profile,
+            results: state.results,
+            macros: state.macros,
+            createdDate: state.planCreatedDate,
+        }));
+    } catch (e) { /* quota exceeded, ignore */ }
+}
 
-    // Also show tracker section
+// Restores the last generated plan so it survives reloads on the phone
+function loadPlan() {
+    let data;
+    try {
+        data = JSON.parse(localStorage.getItem(PLAN_KEY));
+    } catch (e) { return; }
+    if (!data || !data.weekPlan || data.weekPlan.length === 0) return;
+
+    state.weekPlan = data.weekPlan;
+    state.preferences = data.preferences;
+    state.profile = data.profile;
+    state.results = data.results;
+    state.macros = data.macros;
+    state.planCreatedDate = data.createdDate;
+
+    try {
+        renderResults();
+        document.getElementById('ergebnis').classList.remove('hidden');
+    } catch (e) { /* results view is optional */ }
+
+    state.currentDay = getPlanDayForDate(localDateStr());
+    buildDayTabs(state.currentDay);
+    updateMealplanSubtitle();
+    renderDayPlan(state.currentDay);
+    document.getElementById('mealplan').classList.remove('hidden');
     document.getElementById('tracker').classList.remove('hidden');
 }
 
@@ -2034,7 +2120,7 @@ function findFood(name) {
     for (const cat of Object.values(FOODS)) {
         if (cat.items[name]) return cat.items[name];
     }
-    return null;
+    return TRACKER_FOODS[name] || null;
 }
 
 function makeItem(name, grams, food) {
@@ -2060,8 +2146,7 @@ function renderDayPlan(dayIndex) {
     const planDiv = document.getElementById('dayPlan');
     planDiv.innerHTML = day.meals.map((meal, mi) => {
         const totals = sumItems(meal.items);
-        const mealIconMap = { 'Breakfast': '&#127749;', 'Lunch': '&#9728;', 'Dinner': '&#127769;', 'Snack': '&#127856;', 'Snack 1': '&#127856;', 'Snack 2': '&#127838;', 'Snack 3': '&#127815;' };
-        const mealIcon = mealIconMap[meal.name] || '&#127860;';
+        const mealIcon = MEAL_ICONS[meal.name] || '&#127860;';
         const recipe = getRecipeName(mi, meal.items);
         return `
             <div class="meal-card">
@@ -2081,7 +2166,7 @@ function renderDayPlan(dayIndex) {
                     ${meal.items.map(item => `
                         <div class="meal-item">
                             <span class="meal-item-name">${item.name}</span>
-                            <span class="meal-item-amount">${item.grams} g</span>
+                            <span class="meal-item-amount">${item.grams} g${DRY_WEIGHT_FOODS.has(item.name) ? ' dry' : ''}</span>
                         </div>
                     `).join('')}
                     <div class="meal-tip">${recipe.tip}</div>
@@ -2148,6 +2233,8 @@ function swapMeal(dayIndex, mealIndex) {
     day.meals[mealIndex].items = newItems;
 
     renderDayPlan(dayIndex);
+    savePlan();
+    syncDayWithPlan();
 }
 
 function sumItems(items) {
@@ -2175,6 +2262,7 @@ function initTracker() {
             if (!allFoodNames.includes(name)) allFoodNames.push(name);
         });
     });
+    allFoodNames.push(...Object.keys(TRACKER_FOODS));
 
     input.addEventListener('input', () => {
         const query = input.value.toLowerCase().trim();
@@ -2197,7 +2285,7 @@ function initTracker() {
         autocomplete.innerHTML = matches.map(name => {
             const food = findFood(name);
             return `<div class="px-4 py-3 hover:bg-white/10 cursor-pointer border-b border-white/5 last:border-0 transition-colors" data-food="${name}">
-                <div class="font-medium text-sm text-slate-100">${name}</div>
+                <div class="font-medium text-sm text-slate-100">${name}${DRY_WEIGHT_FOODS.has(name) ? ' <span class="text-xs text-amber-400">dry</span>' : ''}</div>
                 <div class="text-xs text-slate-400 mt-0.5">${food.kcal} kcal/100g &middot; P: ${food.protein}g &middot; C: ${food.carbs}g &middot; F: ${food.fat}g</div>
             </div>`;
         }).join('');
@@ -2253,12 +2341,140 @@ function updateTrackerPreview() {
     const unit = document.getElementById('trackerUnit').value;
     const grams = getGramsFromUnit(trackerSelectedFood, amount, unit);
 
+    let gramsNote = `= ${Math.round(grams)} g`;
+    if (unit === 'piece' && !PIECE_WEIGHTS[trackerSelectedFood]) gramsNote += ' (no piece weight known, 100 g assumed: better use grams)';
+    if (DRY_WEIGHT_FOODS.has(trackerSelectedFood)) gramsNote += ' · dry weight! For cooked food pick the "(cooked)" entry';
+    document.getElementById('previewGrams').textContent = gramsNote;
     document.getElementById('previewKcal').textContent = Math.round(food.kcal * grams / 100);
     document.getElementById('previewProtein').textContent = (food.protein * grams / 100).toFixed(1) + 'g';
     document.getElementById('previewCarbs').textContent = (food.carbs * grams / 100).toFixed(1) + 'g';
     document.getElementById('previewFat').textContent = (food.fat * grams / 100).toFixed(1) + 'g';
     document.getElementById('previewFiber').textContent = (food.fiber * grams / 100).toFixed(1) + 'g';
     preview.classList.remove('hidden');
+}
+
+// ==========================================
+// DAILY LOG (plan meals + own entries, persisted per day)
+// ==========================================
+function localDateStr(d = new Date()) {
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+function getPlanDayForDate(dateStr) {
+    const n = state.weekPlan.length;
+    if (!n) return null;
+    const date = new Date(dateStr + 'T00:00:00');
+    if (n === 7) return (date.getDay() + 6) % 7; // 7-day plans are named Monday..Sunday
+    const start = new Date((state.planCreatedDate || dateStr) + 'T00:00:00');
+    const diff = Math.round((date - start) / 86400000);
+    return ((diff % n) + n) % n;
+}
+
+function planMealsFor(planDay) {
+    const day = planDay === null ? null : state.weekPlan[planDay];
+    if (!day) return [];
+    return day.meals.map(m => ({ name: m.name, items: m.items.map(i => ({ ...i })), status: 'pending' }));
+}
+
+function createDay(dateStr) {
+    const planDay = getPlanDayForDate(dateStr);
+    return { date: dateStr, planDay, meals: planMealsFor(planDay), extras: [] };
+}
+
+function saveDay() {
+    try {
+        localStorage.setItem(DAY_KEY, JSON.stringify(state.day));
+    } catch (e) { /* quota exceeded, ignore */ }
+}
+
+function loadDay() {
+    let saved = null;
+    try {
+        saved = JSON.parse(localStorage.getItem(DAY_KEY));
+    } catch (e) { /* corrupt entry, start fresh */ }
+
+    const today = localDateStr();
+    if (saved && saved.date === today) {
+        state.day = saved;
+        return;
+    }
+    if (saved) archiveDay(saved);
+    state.day = createDay(today);
+    saveDay();
+}
+
+// The installed app often resumes from the background on a later day
+function checkDayRollover() {
+    if (!state.day || state.day.date === localDateStr()) return;
+    loadDay();
+    loadWaterTracker();
+    renderWaterTracker();
+    renderTracker();
+    renderHistory();
+}
+
+// Keep pending plan meals in sync after the plan was regenerated or a meal swapped
+function syncDayWithPlan() {
+    if (!state.day) return;
+    const old = state.day.meals;
+    const untouched = old.every(m => m.status === 'pending');
+    if (untouched) state.day.planDay = getPlanDayForDate(state.day.date);
+    const fresh = planMealsFor(state.day.planDay);
+    const len = Math.max(fresh.length, old.length);
+    const meals = [];
+    for (let i = 0; i < len; i++) {
+        if (old[i] && old[i].status !== 'pending') meals.push(old[i]);
+        else if (fresh[i]) meals.push(fresh[i]);
+    }
+    state.day.meals = meals;
+    saveDay();
+    renderTracker();
+}
+
+function getEatenItems(day = state.day) {
+    if (!day) return [];
+    return [
+        ...day.meals.filter(m => m.status === 'done').flatMap(m => m.items),
+        ...day.extras,
+    ];
+}
+
+function toggleMealDone(idx) {
+    const meal = state.day.meals[idx];
+    meal.status = meal.status === 'done' ? 'pending' : 'done';
+    saveDay();
+    renderTracker();
+}
+
+function removeMeal(idx) {
+    state.day.meals[idx].status = 'removed';
+    saveDay();
+    renderTracker();
+    // Jump straight to entering what was eaten instead
+    document.getElementById('trackerSlot').value = String(idx);
+    const input = document.getElementById('trackerFoodInput');
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    input.focus({ preventScroll: true });
+}
+
+function restoreMeal(idx) {
+    state.day.meals[idx].status = 'pending';
+    saveDay();
+    renderTracker();
+}
+
+function changePlanDay(value) {
+    const planDay = parseInt(value);
+    const touched = state.day.meals.some(m => m.status !== 'pending');
+    if (touched && !confirm('Switch plan day? Ticked and removed meals of today will be reset.')) {
+        renderTracker();
+        return;
+    }
+    state.day.planDay = planDay;
+    state.day.meals = planMealsFor(planDay);
+    saveDay();
+    renderTracker();
 }
 
 function addTrackerItem() {
@@ -2279,6 +2495,7 @@ function addTrackerItem() {
     const amount = parseFloat(document.getElementById('trackerAmount').value) || 100;
     const unit = document.getElementById('trackerUnit').value;
     const grams = getGramsFromUnit(foodName, amount, unit);
+    const slotValue = document.getElementById('trackerSlot').value;
 
     const item = {
         id: Date.now(),
@@ -2291,12 +2508,14 @@ function addTrackerItem() {
         carbs: Math.round(food.carbs * grams / 100 * 10) / 10,
         fat: Math.round(food.fat * grams / 100 * 10) / 10,
         fiber: Math.round(food.fiber * grams / 100 * 10) / 10,
+        slot: slotValue === 'extra' ? 'extra' : parseInt(slotValue),
     };
 
-    state.trackerItems.push(item);
+    state.day.extras.push(item);
+    saveDay();
     renderTracker();
 
-    // Reset input
+    // Reset input (meal slot stays, often several foods go into one meal)
     input.value = '';
     trackerSelectedFood = null;
     document.getElementById('trackerPreview').classList.add('hidden');
@@ -2305,33 +2524,57 @@ function addTrackerItem() {
 }
 
 function removeTrackerItem(id) {
-    state.trackerItems = state.trackerItems.filter(item => item.id !== id);
+    state.day.extras = state.day.extras.filter(item => item.id !== id);
+    saveDay();
     renderTracker();
 }
 
 function clearTracker() {
-    if (state.trackerItems.length === 0) return;
-    if (confirm('Clear all tracked items?')) {
-        state.trackerItems = [];
+    if (confirm('Reset today\'s log? Plan meals are un-ticked and your own entries removed.')) {
+        state.day.meals.forEach(m => { m.status = 'pending'; });
+        state.day.extras = [];
+        saveDay();
         renderTracker();
     }
+}
+
+function renderTrackerControls() {
+    const day = state.day;
+    const date = new Date(day.date + 'T00:00:00');
+    document.getElementById('trackerDateLabel').textContent =
+        date.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' });
+
+    const planDayWrap = document.getElementById('trackerPlanDayWrap');
+    const planDaySelect = document.getElementById('trackerPlanDay');
+    if (state.weekPlan.length) {
+        planDayWrap.classList.remove('hidden');
+        planDaySelect.innerHTML = state.weekPlan.map((d, i) =>
+            `<option value="${i}"${i === day.planDay ? ' selected' : ''}>${d.name}</option>`).join('');
+    } else {
+        planDayWrap.classList.add('hidden');
+    }
+
+    const slotSelect = document.getElementById('trackerSlot');
+    const current = slotSelect.value;
+    slotSelect.innerHTML = day.meals.map((m, i) => `<option value="${i}">${m.name}</option>`).join('') +
+        '<option value="extra">Snack / Extra</option>';
+    slotSelect.value = [...slotSelect.options].some(o => o.value === current) ? current : 'extra';
 }
 
 function renderTracker() {
     const listDiv = document.getElementById('trackerList');
     const totalDiv = document.getElementById('trackerTotal');
+    const day = state.day;
 
-    if (state.trackerItems.length === 0) {
-        listDiv.innerHTML = '<div class="text-center text-gray-400 py-8">No foods tracked yet. Add items above.</div>';
-        totalDiv.classList.add('hidden');
-        return;
-    }
+    renderTrackerControls();
 
-    listDiv.innerHTML = state.trackerItems.map(item => `
+    const slotOf = e => (e.slot !== 'extra' && day.meals[e.slot]) ? e.slot : 'extra';
+    const extrasFor = slot => day.extras.filter(e => slotOf(e) === slot);
+    const itemRow = item => `
         <div class="tracker-item">
             <div class="tracker-item-info">
                 <div class="tracker-item-name">${item.name}</div>
-                <div class="tracker-item-detail">${item.amount} ${item.unit} (${item.grams}g) &middot; ${item.kcal} kcal</div>
+                <div class="tracker-item-detail">${item.unit === 'g' ? '' : `${item.amount} ${item.unit} `}(${item.grams}g) &middot; ${item.kcal} kcal</div>
             </div>
             <div class="tracker-item-macros">
                 <div class="tracker-item-macro"><div class="tracker-item-macro-value" style="color:var(--protein-color)">${item.protein}g</div><div class="tracker-item-macro-label">P</div></div>
@@ -2339,24 +2582,67 @@ function renderTracker() {
                 <div class="tracker-item-macro"><div class="tracker-item-macro-value" style="color:var(--fats-color)">${item.fat}g</div><div class="tracker-item-macro-label">F</div></div>
             </div>
             <button class="tracker-item-delete" onclick="removeTrackerItem(${item.id})">&#10005;</button>
-        </div>
-    `).join('');
+        </div>`;
 
-    // Calculate totals
-    const totals = state.trackerItems.reduce((acc, item) => ({
-        kcal: acc.kcal + item.kcal,
-        protein: acc.protein + item.protein,
-        carbs: acc.carbs + item.carbs,
-        fat: acc.fat + item.fat,
-        fiber: acc.fiber + item.fiber,
-    }), { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 });
+    const mealsHtml = day.meals.map((meal, i) => {
+        const icon = MEAL_ICONS[meal.name] || '&#127860;';
+        const own = extrasFor(i);
+        const ownHtml = own.map(itemRow).join('');
+        const ownKcal = Math.round(sumItems(own).kcal);
 
+        if (meal.status === 'removed') {
+            return `
+                <div class="log-meal removed">
+                    <div class="log-meal-header">
+                        <span class="log-meal-title">${icon} ${meal.name}</span>
+                        <span class="log-meal-kcal">${ownKcal} kcal</span>
+                        <button class="log-meal-restore" onclick="restoreMeal(${i})">Restore plan</button>
+                    </div>
+                    ${ownHtml || `<div class="log-meal-empty">Plan meal removed. Add what you actually ate with "Add to: ${meal.name}".</div>`}
+                </div>`;
+        }
+
+        const done = meal.status === 'done';
+        const planKcal = Math.round(sumItems(meal.items).kcal);
+        return `
+            <div class="log-meal${done ? ' done' : ''}">
+                <div class="log-meal-header">
+                    <button class="log-meal-check" onclick="toggleMealDone(${i})" aria-label="Mark as eaten">${done ? '&#10003;' : ''}</button>
+                    <span class="log-meal-title">${icon} ${meal.name}</span>
+                    <span class="log-meal-kcal">${planKcal + ownKcal} kcal</span>
+                    <button class="tracker-item-delete" onclick="removeMeal(${i})" title="Remove plan meal">&#10005;</button>
+                </div>
+                <div class="log-meal-items">${meal.items.map(it =>
+                    `${it.name} ${it.grams} g${DRY_WEIGHT_FOODS.has(it.name) ? ' (dry)' : ''}`).join(' &middot; ')}</div>
+                ${ownHtml}
+            </div>`;
+    }).join('');
+
+    const snacks = extrasFor('extra');
+    const snacksHtml = `
+        <div class="log-meal">
+            <div class="log-meal-header">
+                <span class="log-meal-title">&#127850; Snacks &amp; Extras</span>
+                <span class="log-meal-kcal">${Math.round(sumItems(snacks).kcal)} kcal</span>
+            </div>
+            ${snacks.length ? snacks.map(itemRow).join('') : '<div class="log-meal-empty">Nothing extra yet.</div>'}
+        </div>`;
+
+    const noPlanHint = day.meals.length ? '' :
+        '<div class="text-center text-slate-400 text-sm py-2">No meal plan for today. Create one to pre-fill your day.</div>';
+    listDiv.innerHTML = noPlanHint + mealsHtml + snacksHtml;
+
+    const totals = sumItems(getEatenItems());
     document.getElementById('totalKcal').textContent = Math.round(totals.kcal);
     document.getElementById('totalProtein').textContent = totals.protein.toFixed(1);
     document.getElementById('totalCarbs').textContent = totals.carbs.toFixed(1);
     document.getElementById('totalFat').textContent = totals.fat.toFixed(1);
     document.getElementById('totalFiber').textContent = totals.fiber.toFixed(1);
     totalDiv.classList.remove('hidden');
+
+    const pendingKcal = Math.round(sumItems(day.meals.filter(m => m.status === 'pending').flatMap(m => m.items)).kcal);
+    const remainingDiv = document.getElementById('trackerPending');
+    remainingDiv.textContent = pendingKcal > 0 ? `Still planned today: ${pendingKcal} kcal (not ticked yet)` : '';
 
     // Show target comparison if results are available
     const compDiv = document.getElementById('trackerTargetComparison');
@@ -2411,7 +2697,7 @@ function getWaterTarget() {
 function loadWaterTracker() {
     try {
         const saved = JSON.parse(localStorage.getItem('nourishlab_water_today'));
-        if (saved && saved.date === new Date().toISOString().split('T')[0]) {
+        if (saved && saved.date === localDateStr()) {
             state.waterGlasses = saved.glasses || 0;
         } else {
             state.waterGlasses = 0;
@@ -2422,7 +2708,7 @@ function loadWaterTracker() {
 }
 
 function saveWaterTracker() {
-    const today = new Date().toISOString().split('T')[0];
+    const today = localDateStr();
     localStorage.setItem('nourishlab_water_today', JSON.stringify({
         date: today,
         glasses: state.waterGlasses,
@@ -2481,33 +2767,21 @@ function renderWaterTracker() {
     if (percentDisplay) percentDisplay.textContent = percent + '%';
 }
 
-function finishDay() {
-    if (state.trackerItems.length === 0) {
-        alert('No foods tracked today. Add some items first.');
-        return;
-    }
+function getWaterGlassesForDate(dateStr) {
+    try {
+        const saved = JSON.parse(localStorage.getItem('nourishlab_water_today'));
+        return saved && saved.date === dateStr ? saved.glasses || 0 : 0;
+    } catch { return 0; }
+}
 
-    const today = new Date().toISOString().split('T')[0];
-    const history = getTrackingHistory();
+function buildHistoryEntry(day) {
+    const items = getEatenItems(day);
+    const totals = sumItems(items);
+    const glasses = getWaterGlassesForDate(day.date);
 
-    // Check if already tracked today
-    if (history.some(d => d.date === today)) {
-        if (!confirm('You already have an entry for today. Replace it?')) return;
-        const idx = history.findIndex(d => d.date === today);
-        history.splice(idx, 1);
-    }
-
-    const totals = state.trackerItems.reduce((acc, item) => ({
-        kcal: acc.kcal + item.kcal,
-        protein: acc.protein + item.protein,
-        carbs: acc.carbs + item.carbs,
-        fat: acc.fat + item.fat,
-        fiber: acc.fiber + item.fiber,
-    }), { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 });
-
-    const entry = {
-        date: today,
-        items: state.trackerItems.map(i => ({ name: i.name, grams: i.grams, kcal: i.kcal, protein: i.protein, carbs: i.carbs, fat: i.fat, fiber: i.fiber })),
+    return {
+        date: day.date,
+        items: items.map(i => ({ name: i.name, grams: i.grams, kcal: i.kcal, protein: i.protein, carbs: i.carbs, fat: i.fat, fiber: i.fiber })),
         totals: {
             kcal: Math.round(totals.kcal),
             protein: Math.round(totals.protein * 10) / 10,
@@ -2522,31 +2796,51 @@ function finishDay() {
             fat: state.macros.fats.grams,
             fiber: state.macros.fiber.grams,
         } : null,
-        mealCount: countMeals(),
+        mealCount: countMeals(day),
         water: {
-            glasses: state.waterGlasses,
-            liters: parseFloat((state.waterGlasses * 0.25).toFixed(2)),
+            glasses: glasses,
+            liters: parseFloat((glasses * 0.25).toFixed(2)),
             target: getWaterTarget(),
         },
     };
+}
 
-    history.unshift(entry);
+function storeHistoryEntry(entry) {
+    const history = getTrackingHistory().filter(d => d.date !== entry.date);
+    history.push(entry);
+    history.sort((a, b) => b.date.localeCompare(a.date));
     if (history.length > 90) history.length = 90; // keep 90 days max
     saveTrackingHistory(history);
+}
+
+// A past day that was never finished still ends up in the history
+function archiveDay(day) {
+    if (getEatenItems(day).length === 0) return;
+    storeHistoryEntry(buildHistoryEntry(day));
+}
+
+function finishDay() {
+    if (getEatenItems().length === 0) {
+        alert('Nothing logged as eaten today. Tick off meals or add items first.');
+        return;
+    }
+
+    if (getTrackingHistory().some(d => d.date === state.day.date)) {
+        if (!confirm('You already have an entry for today. Replace it?')) return;
+    }
+
+    const entry = buildHistoryEntry(state.day);
+    storeHistoryEntry(entry);
 
     generateFeedback(entry);
     renderHistory();
 }
 
-function countMeals() {
-    // Rough estimation: items added with significant time gaps or large calorie jumps
-    // Simple heuristic: count distinct protein sources as meals
-    const proteins = new Set();
-    state.trackerItems.forEach(item => {
-        const food = findFood(item.name);
-        if (food && food.protein > 8) proteins.add(item.name);
-    });
-    return Math.max(proteins.size, 1);
+function countMeals(day = state.day) {
+    const slots = new Set();
+    day.meals.forEach((m, i) => { if (m.status === 'done') slots.add(i); });
+    day.extras.forEach(e => slots.add(e.slot));
+    return Math.max(slots.size, 1);
 }
 
 function generateFeedback(entry) {
@@ -3041,7 +3335,7 @@ function exportPDF() {
         y += 14;
     });
 
-    doc.save(`NourishLab_MealPlan_${p.name}_${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`NourishLab_MealPlan_${p.name}_${localDateStr()}.pdf`);
 }
 
 // ==========================================
